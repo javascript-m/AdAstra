@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Ad Astra</string>
+    <string name="emailVerification">Email is not verified. (Click here to verify)</string>
+</resources>

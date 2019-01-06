@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "752691705709",
+    "firebase_url": "https://ad-astra-19408.firebaseio.com",
+    "project_id": "ad-astra-19408",
+    "storage_bucket": "ad-astra-19408.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:752691705709:android:e5a3e7d1699bb36a",
+        "android_client_info": {
+          "package_name": "com.ad_astra.maja.adastra"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "752691705709-315ssbpcs2a64motttuc2qk4oo0cgnor.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ad_astra.maja.adastra",
+            "certificate_hash": "f70b30e513e9fe1c0d0a40fe22648e12046787a5"
+          }
+        },
+        {
+          "client_id": "752691705709-a33sh8sdb3gkqem2b7s4g983rdulbbou.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYcbFKA0WoMaE0a22DLHbl6_qpK2u2fI8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "752691705709-a33sh8sdb3gkqem2b7s4g983rdulbbou.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
