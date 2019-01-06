@@ -1,7 +1,9 @@
 package com.ad_astra.maja.adastra;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.support.annotation.NonNull;
@@ -12,10 +14,12 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.Layout;
 import android.util.Log;
+import android.view.DragEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -46,10 +50,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /* uredi gumb i kod if/elsa sredi parametre u objektu koji se dodaje
-* provjeri kakvo je stanje 'danas', daj svakome 'on i off'
 * VAZNO: offline mode
-*
-* objekt koji će se dodavati za svaki event (osmisliti i napravit)
+* line 100
+* 207: u intentu poslat nes da naglasis da treba ucitat stare podatke i updateat samo blabla -> ime navike ne smin minjat!
 * */
 
 public class HomeScreen extends AppCompatActivity {
@@ -61,6 +64,10 @@ public class HomeScreen extends AppCompatActivity {
     User user;
     String userID;
     String currentDate;
+
+    Context context;
+    SharedPreferences sharedPref;
+    SharedPreferences.Editor editor;
 
     FirebaseAuth mAuth;
     FirebaseFirestore db;
@@ -78,6 +85,11 @@ public class HomeScreen extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         userID = mAuth.getCurrentUser().getUid();
 
+        //Used for accessing today's habit data quickly
+        context = getApplicationContext();
+        sharedPref = context.getSharedPreferences(getString(R.string.my_habits), Context.MODE_PRIVATE);
+        editor = sharedPref.edit();
+
         curUser = (TextView)findViewById(R.id.HS_curUser);
         habitHolder = (LinearLayout)findViewById(R.id.HS_habitHolder);
 
@@ -89,7 +101,11 @@ public class HomeScreen extends AppCompatActivity {
 
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.HS_add:
+            case R.id.HS_add: //&& button is not disabled
+                if (user.habitList.size() >= 4) {
+                    //Make button disabled
+
+                }
                 finish();
                 startActivity(new Intent(HomeScreen.this, AddHabit.class));
                 break;
@@ -101,8 +117,8 @@ public class HomeScreen extends AppCompatActivity {
         super.onStart();
 
         //Real-time updates listener (checks if database state has changed)
-        DocumentReference docRef = db.collection("users").document(userID);
-        docRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+        db.collection("users").document(userID)
+        .addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException e) {
                 if (e != null) {
@@ -115,6 +131,8 @@ public class HomeScreen extends AppCompatActivity {
                 }
             }
         });
+
+
     }
 
     @Override
@@ -136,8 +154,12 @@ public class HomeScreen extends AppCompatActivity {
         return true;
     }
 
-    private void arrangeButtonStyle(String val, Button btn) {
-        //Do some button magic
+    private void arrangeButtonStyle(String val, Button btnID) {
+        if (val.equals("true")) {
+            btnID.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.habitDone));
+        } else {
+            btnID.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.habitUndone));
+        }
     }
 
     //Update home screen every time a change in database occurs
@@ -148,52 +170,47 @@ public class HomeScreen extends AppCompatActivity {
         //Put habit views inside habit holder and set design
         habitHolder.removeAllViews();
         for (int i=0; i<user.habitList.size(); i++) {
+            final String hName = user.habitList.get(i);
+            final String pref_hName = userID+"_"+hName;
             final Button hBtn = new Button(this);
-            hBtn.setText(user.habitList.get(i));
-            hBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+            hBtn.setText(hName);
 
             //If that habit is already done for today, edit button style
-            db.collection("users").document(userID).collection("events").document(currentDate)
-            .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            Map<String, Object> setData =  new HashMap<>();
+            String isDone = sharedPref.getString(pref_hName, "false");
+            setData.put(hName, isDone);
+            arrangeButtonStyle(isDone, hBtn);
+            db.collection("users").document(userID).collection("events").document(currentDate).set(setData, SetOptions.merge());
+
+            //If a long click occurs, change habit's value (done/undone)
+            hBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                    if (task.isSuccessful()) {
-                        DocumentSnapshot document = task.getResult();
-                        if (document.exists()) {
-                            Map<String, Object> setData =  new HashMap<>();
-                            String isDone = (String) document.get(hBtn.getText().toString());
-                            if (isDone == null || isDone.equals("false")) {
-                                setData.put(hBtn.getText().toString(), "false");
-                                hBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
-                                db.collection("users").document(userID).collection("events").document(currentDate).set(setData, SetOptions.merge());
-                            } else {
-                                hBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
-                            }
-                        }
-                    }
+                public void onClick(View view) {
+                    Map<String, Object> setData = new HashMap<>();
+                    String currentState = sharedPref.getString(pref_hName, "false");
+
+                    if (currentState.equals("true")) currentState = "false";
+                    else currentState = "true";
+                    setData.put(hName, currentState);
+                    editor.putString(pref_hName, currentState);
+                    arrangeButtonStyle(currentState, hBtn);
+                    editor.commit();
+
+                    db.collection("users").document(userID).collection("events").document(currentDate).set(setData, SetOptions.merge());
                 }
             });
 
-            //If a long click occurs, change habit's value (done/undone)
+
             hBtn.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View view) {
-                    ColorDrawable btnColor = (ColorDrawable) hBtn.getBackground();
-                    Map<String, Object> setData = new HashMap<>();
-
-                    if (btnColor.getColor() == getResources().getColor(R.color.colorAccent)) {
-                        setData.put(hBtn.getText().toString(), "true");
-                        hBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
-                    }
-                    else {
-                        setData.put(hBtn.getText().toString(), "false");
-                        hBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
-                    }
-
-                    db.collection("users").document(userID).collection("events").document(currentDate).set(setData, SetOptions.merge());
+                    finish();
+                    startActivity(new Intent(HomeScreen.this, AddHabit.class));
                     return false;
                 }
             });
+
+
 
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             habitHolder.addView(hBtn, params);

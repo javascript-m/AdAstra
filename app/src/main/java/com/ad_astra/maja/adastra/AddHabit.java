@@ -32,6 +32,7 @@ public class AddHabit extends AppCompatActivity {
     ProgressBar pr1, pr2, pr3;
 
     String Sname, Sdesc;
+    User user;
     int Ipr1, Ipr2, Ipr3;
 
     FirebaseAuth mAuth;
@@ -50,6 +51,20 @@ public class AddHabit extends AppCompatActivity {
         pr1 = (ProgressBar)findViewById(R.id.AAH_p1S);
         pr2 = (ProgressBar)findViewById(R.id.AAH_p2S);
         pr3 = (ProgressBar)findViewById(R.id.AAH_p3S);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        db.collection("users").document(mAuth.getCurrentUser().getUid())
+        .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    user = task.getResult().toObject(User.class);
+                }
+            }
+        });
     }
 
     public void onClick(View v) {
@@ -76,6 +91,11 @@ public class AddHabit extends AppCompatActivity {
             hName.requestFocus();
             return false;
         }
+        if (user.habitList.contains(Sname)) {
+            hName.setError("This habit already exists.");
+            hName.requestFocus();
+            return false;
+        }
         if (Sdesc.isEmpty()) {
             hDesc.setError("Description is required");
             hDesc.requestFocus();
@@ -84,23 +104,13 @@ public class AddHabit extends AppCompatActivity {
         return true;
     }
 
+    //Create habitInfo file and add habit name to userInfo file
     private void submitHabitChanges() {
         final HabitInfo hInfo = new HabitInfo(Sname, Sdesc,"blablaImgUrl", Ipr1, Ipr2, Ipr3);
-        db.collection("users").document(mAuth.getCurrentUser().getUid()).collection("habits").document(hInfo.hName).set(hInfo);
+        db.collection("users").document(user.userID).collection("habits").document(hInfo.hName).set(hInfo);
 
-        //Add habit to user's habitList
-        db.collection("users").document(mAuth.getCurrentUser().getUid())
-                .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    User user = task.getResult().toObject(User.class);
-                    user.habitList.add(Sname);
-
-                    db.collection("users").document(mAuth.getCurrentUser().getUid()).set(user);
-                }
-            }
-        });
+        user.habitList.add(Sname);
+        db.collection("users").document(user.userID).set(user);
 
     }
 }
