@@ -17,6 +17,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 /*url slika kako bi se prikazivale u krugovima
 * Na papiru odvojenom je mapa kako treba izgledat baza
+* onStart (podesit drugačije)
+* OVAJ ACTIVITY ZAPRAVO TREBA BIT LOG IN SCREEN
 * */
 
 public class MainActivity extends AppCompatActivity {
@@ -38,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (mAuth.getCurrentUser() != null) {
             finish();
-            startActivity(new Intent(MainActivity.this, HomeScreen.class));
+            startActivity(new Intent(MainActivity.this, AddHabit.class));
         }
     }
 

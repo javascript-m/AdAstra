@@ -28,12 +28,10 @@ import java.util.ArrayList;
 
 public class AddHabit extends AppCompatActivity {
 
-    EditText hName, hDesc;
-    ProgressBar pr1, pr2, pr3;
+    EditText hName;
 
-    String Sname, Sdesc;
+    String Sname;
     User user;
-    int Ipr1, Ipr2, Ipr3;
 
     FirebaseAuth mAuth;
     FirebaseFirestore db;
@@ -47,10 +45,6 @@ public class AddHabit extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
 
         hName = (EditText)findViewById(R.id.AAH_name);
-        hDesc = (EditText)findViewById(R.id.AAH_desc);
-        pr1 = (ProgressBar)findViewById(R.id.AAH_p1S);
-        pr2 = (ProgressBar)findViewById(R.id.AAH_p2S);
-        pr3 = (ProgressBar)findViewById(R.id.AAH_p3S);
     }
 
     @Override
@@ -81,10 +75,6 @@ public class AddHabit extends AppCompatActivity {
 
     private boolean validateInputs() {
         Sname = hName.getText().toString().trim();
-        Sdesc = hDesc.getText().toString().trim();
-        Ipr1 = pr1.getProgress();
-        Ipr2 = pr2.getProgress();
-        Ipr3 = pr3.getProgress();
 
         if (Sname.isEmpty()) {
             hName.setError("Name is required.");
@@ -96,18 +86,13 @@ public class AddHabit extends AppCompatActivity {
             hName.requestFocus();
             return false;
         }
-        if (Sdesc.isEmpty()) {
-            hDesc.setError("Description is required");
-            hDesc.requestFocus();
-            return false;
-        }
         return true;
     }
 
     //Create habitInfo file and add habit name to userInfo file
     private void submitHabitChanges() {
-        final HabitInfo hInfo = new HabitInfo(Sname, Sdesc,"blablaImgUrl", Ipr1, Ipr2, Ipr3);
-        db.collection("users").document(user.userID).collection("habits").document(hInfo.hName).set(hInfo);
+        //final HabitInfo hInfo = new HabitInfo(Sname, Sdesc,"blablaImgUrl", Ipr1, Ipr2, Ipr3);
+        //db.collection("users").document(user.userID).collection("habits").document(hInfo.hName).set(hInfo);
 
         user.habitList.add(Sname);
         db.collection("users").document(user.userID).set(user);

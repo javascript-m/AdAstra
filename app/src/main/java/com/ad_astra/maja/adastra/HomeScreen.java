@@ -43,6 +43,11 @@ public class HomeScreen extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.HS_toolbar);
         setSupportActionBar(toolbar);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
 
         //Set up viewPager -> FragmentCollectionAdapter.java
         viewPager = findViewById(R.id.HS_pager);
@@ -50,7 +55,6 @@ public class HomeScreen extends AppCompatActivity {
         viewPager.setAdapter(adapter);
         viewPager.setCurrentItem(1);
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

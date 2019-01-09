@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -41,6 +42,7 @@ public class HomeFragment extends Fragment {
     String currentDate;
 
     LinearLayout habitHolder;
+    ImageButton addHabitBtn;
 
     FirebaseAuth mAuth;
     FirebaseFirestore db;
@@ -71,6 +73,7 @@ public class HomeFragment extends Fragment {
         });
     }
 
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
@@ -78,6 +81,7 @@ public class HomeFragment extends Fragment {
 
         //Get all necessary views
         habitHolder = (LinearLayout) homeFragment.findViewById(R.id.HF_habitHolder);
+        addHabitBtn = (ImageButton) homeFragment.findViewById(R.id.HF_add);
 
         //Initialize Authentication and Firestore
         user = new User();
@@ -96,6 +100,13 @@ public class HomeFragment extends Fragment {
         Date cDay = Calendar.getInstance().getTime();
         SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
         currentDate = df.format(cDay);
+
+        addHabitBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(getActivity(), AddHabit.class));
+            }
+        });
 
         // Inflate the layout for this fragment
         return homeFragment;
