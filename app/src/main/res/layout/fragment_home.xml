@@ -36,7 +36,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="65%"
-        android:textSize="30sp"
+        android:textSize="36sp"
         app:layout_constraintBottom_toBottomOf="@+id/HF_circBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/HF_circBar"
@@ -45,7 +45,7 @@
     <HorizontalScrollView
         android:id="@+id/horizontalScrollView"
         android:layout_width="0dp"
-        android:layout_height="60dp"
+        android:layout_height="70dp"
         android:layout_marginBottom="16dp"
         android:layout_marginEnd="8dp"
         android:layout_marginLeft="8dp"
@@ -70,18 +70,24 @@
             tools:layout_editor_absoluteY="8dp" />
     </HorizontalScrollView>
 
-    <ImageButton
+    <Button
         android:id="@+id/HF_add"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
         android:layout_marginBottom="16dp"
         android:layout_marginEnd="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginStart="8dp"
+        android:background="@drawable/add_habit_button"
+        android:text="+"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textSize="40dp"
+        android:textStyle="bold"
+        android:typeface="sans"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/horizontalScrollView"
-        app:srcCompat="@android:drawable/btn_plus" />
+        app:layout_constraintStart_toEndOf="@+id/horizontalScrollView" />
 
 </android.support.constraint.ConstraintLayout>

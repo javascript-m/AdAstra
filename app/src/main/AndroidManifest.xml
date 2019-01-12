@@ -20,7 +20,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".SignUp" />
-        <activity android:name=".LogIn" />
         <activity android:name=".MyProfile" />
         <activity android:name=".EditUserInfo" />
         <activity android:name=".AddHabit" />

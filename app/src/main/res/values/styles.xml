@@ -6,5 +6,16 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="actionOverflowButtonStyle">@style/OptionsButtonStyle</item>
+        <item name="android:buttonStyle">@style/HabitButtonStyle</item>
+    </style>
+
+    <style name="OptionsButtonStyle" parent="Widget.AppCompat.ActionButton.Overflow">
+        <item name="android:tint">#ffffff</item>
+    </style>
+
+    <style name="HabitButtonStyle" parent="Widget.AppCompat.Button">
+        <item name="android:minHeight">0dp</item>
+        <item name="android:minWidth">0dp</item>
     </style>
 </resources>

@@ -4,7 +4,10 @@ package com.ad_astra.maja.adastra;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -42,7 +45,8 @@ public class HomeFragment extends Fragment {
     String currentDate;
 
     LinearLayout habitHolder;
-    ImageButton addHabitBtn;
+    Button addHabitBtn;
+    LinearLayout.LayoutParams btnParams;
 
     FirebaseAuth mAuth;
     FirebaseFirestore db;
@@ -81,7 +85,7 @@ public class HomeFragment extends Fragment {
 
         //Get all necessary views
         habitHolder = (LinearLayout) homeFragment.findViewById(R.id.HF_habitHolder);
-        addHabitBtn = (ImageButton) homeFragment.findViewById(R.id.HF_add);
+        addHabitBtn = (Button) homeFragment.findViewById(R.id.HF_add);
 
         //Initialize Authentication and Firestore
         user = new User();
@@ -112,11 +116,14 @@ public class HomeFragment extends Fragment {
         return homeFragment;
     }
 
-    private void arrangeButtonStyle(String val, Button btnID) {
+    private void arrangeButtonStyle(String val, String hN, Button btnID) {
+        btnID.setText(hN.substring(0,2));
+        btnID.setTextColor(Color.WHITE);
+
         if (val.equals("true")) {
-            btnID.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.habitDone));
+            btnID.setBackgroundResource(R.drawable.habit_btn_done);
         } else {
-            btnID.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.habitUndone));
+            btnID.setBackgroundResource(R.drawable.habit_btn);
         }
     }
 
@@ -127,13 +134,15 @@ public class HomeFragment extends Fragment {
             final String hName = user.habitList.get(i);
             final String pref_hName = userID+"_"+hName;
             final Button hBtn = new Button(getContext()); //!!
-            hBtn.setText(hName);
+            final TextView emptySpace = new TextView(getContext());
+            emptySpace.setText("   ");
 
             //If that habit is already done for today, edit button style
             Map<String, Object> setData =  new HashMap<>();
             String isDone = sharedPref.getString(pref_hName, "false");
             setData.put(hName, isDone);
-            arrangeButtonStyle(isDone, hBtn);
+
+            arrangeButtonStyle(isDone, hName, hBtn);
             db.collection("users").document(userID).collection("events").document(currentDate).set(setData, SetOptions.merge());
 
             //If a long click occurs, change habit's value (done/undone)
@@ -147,7 +156,7 @@ public class HomeFragment extends Fragment {
                     else currentState = "true";
                     setData.put(hName, currentState);
                     editor.putString(pref_hName, currentState);
-                    arrangeButtonStyle(currentState, hBtn);
+                    arrangeButtonStyle(currentState, hName, hBtn);
                     editor.commit();
 
                     db.collection("users").document(userID).collection("events").document(currentDate).set(setData, SetOptions.merge());
@@ -165,6 +174,7 @@ public class HomeFragment extends Fragment {
 
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             habitHolder.addView(hBtn, params);
+            if (i < user.habitList.size()-1) habitHolder.addView(emptySpace, params);
         }
     }
 

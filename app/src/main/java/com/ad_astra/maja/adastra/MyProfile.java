@@ -88,7 +88,7 @@ public class MyProfile extends AppCompatActivity {
 
         if (mAuth.getCurrentUser() == null) {
             finish();
-            startActivity(new Intent(MyProfile.this, LogIn.class));
+            startActivity(new Intent(MyProfile.this, MainActivity.class));
         }
 
         //Fill in user info if available
@@ -137,7 +137,7 @@ public class MyProfile extends AppCompatActivity {
             case R.id.menuLogout:
                 FirebaseAuth.getInstance().signOut();
                 finish();
-                startActivity(new Intent(MyProfile.this, LogIn.class));
+                startActivity(new Intent(MyProfile.this, MainActivity.class));
                 break;
         }
         return true;
@@ -239,7 +239,7 @@ public class MyProfile extends AppCompatActivity {
                         });
                         FirebaseAuth.getInstance().signOut();
                         finish();
-                        startActivity(new Intent(MyProfile.this, LogIn.class));
+                        startActivity(new Intent(MyProfile.this, MainActivity.class));
                     }
                 });
             }

@@ -43,6 +43,7 @@ public class HomeScreen extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.HS_toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
     }
 
     @Override
