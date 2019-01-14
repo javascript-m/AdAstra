@@ -133,7 +133,7 @@ public class AddHabit extends AppCompatActivity {
         final HabitInfo habitInfo = new HabitInfo(context, sName, sDesc, iGoal, sTrigger, sReplacement);
 
         //Update Shared Preferences and add habit to current habit list
-        editor.putString(sName, "false");
+        editor.putString(sName, "false"); //OVA LINIJA NECE TEBAT
         hList = (Set<String>) sharedPref.getStringSet("habitList", new HashSet<String>());
         hList.add(sName);
         editor.putStringSet("habitList", hList);
