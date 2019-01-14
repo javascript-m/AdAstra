@@ -1,5 +1,4 @@
 <resources>
-    <string name="my_habits">com.ad_astra.maja.adastra.MY_HABITS</string>
     <string name="app_name">Ad Astra</string>
 
     <string name="emailVerification">Email is not verified. (Click here to verify)</string>

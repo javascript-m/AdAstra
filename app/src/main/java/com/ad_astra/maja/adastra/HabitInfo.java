@@ -1,29 +1,59 @@
 package com.ad_astra.maja.adastra;
 
+
+import android.content.Context;
+
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 public class HabitInfo {
-    public String hName;
-    public String hDesc;
-    public String imgUrl;
+    public String sName;
+    public String sDesc;
+    public int iGoal;
+    public String sTrigger;
+    public String sReplacement;
 
-    public int par1;
-    public int par2;
-    public int par3;
-
-    public int PRIORITY = 1;
+    public Context context;
+    //HABIT PLAN?
 
     public HabitInfo() {};
 
-    public HabitInfo(String n, String d, String url, int p1, int p2, int p3) {
-        hName = n;
-        hDesc = d;
-        imgUrl = url;
-        par1 = p1;
-        par2 = p2;
-        par3 = p3;
+    public HabitInfo(Context context, String hName, String hDesc, int hGoal, String hTrigger, String hReplacement) {
+        context = context;
+        sName = hName;
+        sDesc = hDesc;
+        iGoal = hGoal;
+        sTrigger = hTrigger;
+        sReplacement = hReplacement;
     }
 
-    public int calculatePriority(int p1, int p2, int p3) {
-        PRIORITY = p1 + p2 + p3;
-        return PRIORITY;
+    public void saveToFile(String fileName) {
+        try {
+            FileOutputStream fos = context.openFileOutput(fileName, Context.MODE_PRIVATE);
+            ObjectOutputStream os = new ObjectOutputStream(fos);
+            os.writeObject(this);
+            os.close();
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public HabitInfo loadFromFile(String fileName) {
+        HabitInfo habitInfo = new HabitInfo();
+        try {
+            FileInputStream fis = context.openFileInput(fileName);
+            ObjectInputStream is = new ObjectInputStream(fis);
+            habitInfo = (HabitInfo) is.readObject();
+            is.close();
+            fis.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return habitInfo;
     }
 }

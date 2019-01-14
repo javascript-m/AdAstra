@@ -50,7 +50,7 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
-        android:id="@+id/textView4"
+        android:id="@+id/AAH_goalTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="32dp"
@@ -62,7 +62,7 @@
         app:layout_constraintTop_toBottomOf="@+id/AAH_img" />
 
     <SeekBar
-        android:id="@+id/seekBar2"
+        android:id="@+id/AAH_goal"
         style="@style/Widget.AppCompat.SeekBar.Discrete"
         android:layout_width="279dp"
         android:layout_height="17dp"
@@ -72,10 +72,10 @@
         android:max="7"
         android:progress="3"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView4" />
+        app:layout_constraintTop_toBottomOf="@+id/AAH_goalTitle" />
 
     <TextView
-        android:id="@+id/textView10"
+        android:id="@+id/AAH_descTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
@@ -83,11 +83,11 @@
         android:layout_marginStart="32dp"
         android:text="Description"
         android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@+id/editText2"
+        app:layout_constraintBottom_toTopOf="@+id/AAH_desc"
         app:layout_constraintStart_toStartOf="parent" />
 
     <EditText
-        android:id="@+id/editText2"
+        android:id="@+id/AAH_desc"
         android:layout_width="0dp"
         android:layout_height="60dp"
         android:layout_marginBottom="8dp"
@@ -100,13 +100,13 @@
         android:inputType="textMultiLine"
         android:textColorLink="@android:color/transparent"
         android:textSize="12sp"
-        app:layout_constraintBottom_toTopOf="@+id/textView8"
+        app:layout_constraintBottom_toTopOf="@+id/AAH_triggerTitle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
-        android:id="@+id/textView8"
+        android:id="@+id/AAH_triggerTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
@@ -114,11 +114,11 @@
         android:layout_marginStart="32dp"
         android:text="Trigger"
         android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@+id/editText3"
+        app:layout_constraintBottom_toTopOf="@+id/AAH_trigger"
         app:layout_constraintStart_toStartOf="parent" />
 
     <EditText
-        android:id="@+id/editText3"
+        android:id="@+id/AAH_trigger"
         android:layout_width="0dp"
         android:layout_height="60dp"
         android:layout_marginBottom="24dp"

@@ -22,7 +22,7 @@ import java.util.Map;
 
 /***
  * is date valid (b date)
- *
+ * sve da bude unutar foldera USER_ID
  */
 
 public class EditUserInfo extends AppCompatActivity {
@@ -33,8 +33,6 @@ public class EditUserInfo extends AppCompatActivity {
     EditText fNameE;
     EditText lNameE;
     EditText bDateE;
-
-    private static final String TAG = "MyActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
