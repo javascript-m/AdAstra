@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,7 +52,7 @@ public class HomeFragment extends Fragment {
     String todaysDate;
     String activeWeekDay; //Date I'm currently modifying
     String todaysWeekDay;
-    ArrayList<String> weekDays = new ArrayList<String>();
+    ArrayList<String> weekDays = new ArrayList<>();
 
     TextView prText;
     LinearLayout habitHolder;
@@ -62,7 +63,6 @@ public class HomeFragment extends Fragment {
     FirebaseFirestore db;
 
     Context context;
-    Set<String> hList;
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
 
@@ -92,9 +92,6 @@ public class HomeFragment extends Fragment {
         addHabitBtn = (Button) homeFragment.findViewById(R.id.HF_add);
         prText = (TextView) homeFragment.findViewById(R.id.HF_progressTxt);
 
-        dayManager = (TabLayout) homeFragment.findViewById(R.id.HF_week);
-        dayManager.getTabAt(getDayIndex(todaysWeekDay)).select();
-
         //Initialize Authentication and Firestore
         user = new User();
         mAuth = FirebaseAuth.getInstance();
@@ -105,8 +102,9 @@ public class HomeFragment extends Fragment {
         context = getContext();
         sharedPref = context.getSharedPreferences(userID, Context.MODE_PRIVATE);
 
-        initializeNewDay();
         setRealtimeUpdates();
+
+        dayManager = (TabLayout) homeFragment.findViewById(R.id.HF_week);
 
         addHabitBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -131,6 +129,7 @@ public class HomeFragment extends Fragment {
             @Override
             public void onTabReselected(TabLayout.Tab tab) {}
         });
+        dayManager.getTabAt(getDayIndex(todaysWeekDay)).select();
 
         // Inflate the layout for this fragment
         return homeFragment;
@@ -167,9 +166,10 @@ public class HomeFragment extends Fragment {
         if (!lastUpdate.equals(todaysDate)) {
             Toast.makeText(getActivity(), "Updated", Toast.LENGTH_LONG).show();
             editor = sharedPref.edit();
-            hList = (Set<String>) sharedPref.getStringSet("habitList", new HashSet<String>());
+            //#hList = (Set<String>) sharedPref.getStringSet("habitList", new HashSet<String>());
             Set<String> state = new HashSet<String>();
-            for (String hName : hList) state.add("F"+hName);
+            for (String hName : user.habitList) state.add("F"+hName);
+
             editor.putString("lastUpdateDate", todaysDate);
             editor.remove(todaysWeekDay);
             editor.putStringSet(todaysWeekDay, state);
@@ -188,8 +188,10 @@ public class HomeFragment extends Fragment {
                         }
                         if (snapshot != null && snapshot.exists()) {
                             user = snapshot.toObject(User.class);
-                            if (user != null)
+                            if (user != null) {
                                 updateHomeScreen();
+                                initializeNewDay();
+                            }
                         }
                     }
                 });
@@ -203,15 +205,15 @@ public class HomeFragment extends Fragment {
             Map<String, Object> setData = new HashMap<>();
 
             String newVal;
-            Set<String> state = new HashSet<String>(sharedPref.getStringSet(activeWeekDay, new HashSet<String>()));
+            Set<String> state = new HashSet<>(sharedPref.getStringSet(activeWeekDay, new HashSet<String>()));
 
-            if (state.contains("T"+hName)) {
-                state.remove("T"+hName);
-                state.add("F"+hName);
+            if (state.contains("T" + hName)) {
+                state.remove("T" + hName);
+                state.add("F" + hName);
                 newVal = "false";
             } else {
-                if (state.contains("F"+hName)) state.remove("F"+hName);
-                state.add("T"+hName);
+                if (state.contains("F" + hName)) state.remove("F" + hName);
+                state.add("T" + hName);
                 newVal = "true";
             }
 
@@ -223,20 +225,19 @@ public class HomeFragment extends Fragment {
             editor.apply();
 
             setData.put(hName, newVal);
-            db.collection("users").document(userID).collection("events").document(activeWeekDate).set(setData, SetOptions.merge());
+            try {
+                db.collection("users").document(userID).collection("events").document(activeWeekDate).set(setData, SetOptions.merge());
+            } catch (Exception e) {
+                Log.d("HOME FRAGMENT", e.toString());
+            }
         }
     };
 
     private void updateHomeScreen() {
-        hList = (Set<String>) sharedPref.getStringSet("habitList", new HashSet<String>());
-
-        //In case user changes phone or reinstalls the app
-        if (hList.isEmpty()) hList.addAll(user.habitList);
-
-        //Loop through sharedPrefSet and add habits
+        //Add Habits
         int cnt = 0;
         Set<String> curState = sharedPref.getStringSet(activeWeekDay, new HashSet<String>());
-        for (String hName : hList) {
+        for (String hName : user.habitList) {
             final String isDone;
             if (curState.contains("T"+hName)) isDone = "true";
             else {

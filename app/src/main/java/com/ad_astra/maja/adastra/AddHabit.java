@@ -133,11 +133,10 @@ public class AddHabit extends AppCompatActivity {
         final HabitInfo habitInfo = new HabitInfo(context, sName, sDesc, iGoal, sTrigger, sReplacement);
 
         //Update Shared Preferences and add habit to current habit list
-        editor.putString(sName, "false"); //OVA LINIJA NECE TEBAT
-        hList = (Set<String>) sharedPref.getStringSet("habitList", new HashSet<String>());
+        /*hList = (Set<String>) sharedPref.getStringSet("habitList", new HashSet<String>());
         hList.add(sName);
         editor.putStringSet("habitList", hList);
-        editor.commit();
+        editor.commit();*/
 
         //Put it online in case user changes phone
         db.collection("users").document(userID).collection("habits").document(sName).set(habitInfo)
@@ -145,10 +144,10 @@ public class AddHabit extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
-                    Toast.makeText(AddHabit.this, "Success", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(AddHabit.this, "Success", Toast.LENGTH_LONG).show();
                 }
                 else {
-                    Toast.makeText(AddHabit.this, "Fail", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(AddHabit.this, "Fail", Toast.LENGTH_LONG).show();
                 }
             }
         });
