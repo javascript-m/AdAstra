@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -15,19 +14,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.SetOptions;
-import com.google.firebase.firestore.ThrowOnExtraProperties;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -54,13 +50,17 @@ public class HomeFragment extends Fragment {
     String todaysWeekDay;
     ArrayList<String> weekDays = new ArrayList<>();
 
-    TextView prText;
+    TextView progressText;
+    ProgressBar progressBar;
     LinearLayout habitHolder;
     Button addHabitBtn;
     TabLayout dayManager;
 
     FirebaseAuth mAuth;
     FirebaseFirestore db;
+
+    Set<String> toDo = new HashSet<>();
+    int done = 0;
 
     Context context;
     SharedPreferences sharedPref;
@@ -88,9 +88,10 @@ public class HomeFragment extends Fragment {
         final Calendar cal = Calendar.getInstance();
 
         //Get all necessary views
+        progressBar = (ProgressBar) homeFragment.findViewById(R.id.HF_circBar);
         habitHolder = (LinearLayout) homeFragment.findViewById(R.id.HF_habitHolder);
         addHabitBtn = (Button) homeFragment.findViewById(R.id.HF_add);
-        prText = (TextView) homeFragment.findViewById(R.id.HF_progressTxt);
+        progressText = (TextView) homeFragment.findViewById(R.id.HF_progressTxt);
 
         //Initialize Authentication and Firestore
         user = new User();
@@ -135,7 +136,7 @@ public class HomeFragment extends Fragment {
         return homeFragment;
     }
 
-    private String getWeekDay(int day) {
+    public static String getWeekDay(int day) {
         switch (day) {
             case Calendar.MONDAY:
                 return "MONDAY";
@@ -211,11 +212,15 @@ public class HomeFragment extends Fragment {
                 state.remove("T" + hName);
                 state.add("F" + hName);
                 newVal = "false";
+                done--;
             } else {
                 if (state.contains("F" + hName)) state.remove("F" + hName);
                 state.add("T" + hName);
                 newVal = "true";
+                done++;
             }
+
+            if (toDo.contains(hName)) updateProgressBar();
 
             if (newVal.equals("true")) v.setBackgroundResource(R.drawable.habit_btn_done);
             else v.setBackgroundResource(R.drawable.habit_btn);
@@ -233,16 +238,50 @@ public class HomeFragment extends Fragment {
         }
     };
 
+    private void updateProgressBar() {
+        int value = 0;
+        if (toDo.size() != 0) value = done * 100/toDo.size();
+        if (toDo.size() == done) value = 100;
+        else if (done == 0) value = 0;
+
+        String valueTxt = value + "%";
+
+        progressBar.setProgress(value);
+        progressText.setText(valueTxt);
+        /*int value = progressBar.getProgress();
+        if (done.equals("true")) {
+            value += 100toDo.size();
+        } else {
+            value -= 100toDo.size();
+            if (value < 0) value = 0;
+        }
+        if (value >= 90) value = 100;
+        else if (value <= 15) value = 0;
+        progressBar.setProgress(value);
+        String tmpTxt = value + "%";
+        progressText.setText(tmpTxt);*/
+    }
+
+    private boolean needsToBeDone(String hName) {
+        return true;
+    }
+
     private void updateHomeScreen() {
-        //Add Habits
-        int cnt = 0;
         Set<String> curState = sharedPref.getStringSet(activeWeekDay, new HashSet<String>());
+        int cnt = 0;
+        done = 0;
         for (String hName : user.habitList) {
             final String isDone;
             if (curState.contains("T"+hName)) isDone = "true";
             else {
                 curState.add("F"+hName);
                 isDone = "false";
+            }
+
+            //If the habit is not skipped and finished for this week, add to to_do set
+            if (needsToBeDone(hName)) {
+                if (isDone.equals("true")) done++;
+                toDo.add(hName);
             }
 
             final View v = habitHolder.getChildAt(2*cnt);
@@ -257,5 +296,6 @@ public class HomeFragment extends Fragment {
             habitHolder.getChildAt(2*cnt+1).setVisibility(View.VISIBLE);
             cnt++;
         }
+        updateProgressBar();
     }
 }

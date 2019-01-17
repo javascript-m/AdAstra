@@ -6,32 +6,20 @@ import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Patterns;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.SeekBar;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /* Unutar validate inputs (update)
@@ -45,8 +33,8 @@ public class AddHabit extends AppCompatActivity {
     EditText hName, hDesc, hTrigger, hReplacement;
     SeekBar hGoal;
 
-    String sName, sDesc, sTrigger, sReplacement;
-    int iGoal;
+    String name, desc, trigger, replacement;
+    int goal;
 
     User user;
     String userID;
@@ -108,19 +96,19 @@ public class AddHabit extends AppCompatActivity {
     }
 
     private boolean validateInputs() {
-        sName = hName.getText().toString().trim();
-        sDesc = hDesc.getText().toString().trim();
-        sTrigger = hTrigger.getText().toString().trim();
-        sReplacement = "replacement";
-        iGoal = 2;
+        name = hName.getText().toString().trim();
+        desc = hDesc.getText().toString().trim();
+        trigger = hTrigger.getText().toString().trim();
+        replacement = "replacement";
+        goal = 2;
         //Get GOAL and REPLACEMENT VALUE
 
-        if (sName.isEmpty()) {
+        if (name.isEmpty()) {
             hName.setError("Name is required.");
             hName.requestFocus();
             return false;
         }
-        if (user.habitList.contains(sName)) {
+        if (user.habitList.contains(name)) {
             hName.setError("This habit already exists");
             hName.requestFocus();
             return false;
@@ -130,29 +118,12 @@ public class AddHabit extends AppCompatActivity {
 
     //Create habitInfo file and add habit name to userInfo file
     private void submitHabitChanges() {
-        final HabitInfo habitInfo = new HabitInfo(context, sName, sDesc, iGoal, sTrigger, sReplacement);
+        String TWD = HomeFragment.getWeekDay(Calendar.getInstance().get(Calendar.DAY_OF_WEEK));
+        final HabitInfo habitInfo = new HabitInfo(context, name, desc, goal, trigger, replacement, TWD);
 
-        //Update Shared Preferences and add habit to current habit list
-        /*hList = (Set<String>) sharedPref.getStringSet("habitList", new HashSet<String>());
-        hList.add(sName);
-        editor.putStringSet("habitList", hList);
-        editor.commit();*/
+        db.collection("users").document(userID).collection("habits").document(name).set(habitInfo);
 
-        //Put it online in case user changes phone
-        db.collection("users").document(userID).collection("habits").document(sName).set(habitInfo)
-        .addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    //Toast.makeText(AddHabit.this, "Success", Toast.LENGTH_LONG).show();
-                }
-                else {
-                    //Toast.makeText(AddHabit.this, "Fail", Toast.LENGTH_LONG).show();
-                }
-            }
-        });
-
-        user.habitList.add(sName);
+        user.habitList.add(name);
         db.collection("users").document(userID).set(user);
     }
 }

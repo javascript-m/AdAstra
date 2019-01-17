@@ -19,7 +19,7 @@
         android:background="@drawable/circle_bar_background"
         android:indeterminate="false"
         android:max="100"
-        android:progress="65"
+        android:progress="0"
         android:progressDrawable="@drawable/circle_bar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -43,7 +43,35 @@
         app:layout_constraintTop_toTopOf="@+id/HF_circBar" />
 
     <HorizontalScrollView
-        android:id="@+id/HF_scrollView"
+        android:id="@+id/HF_scrollProgress"
+        android:layout_width="0dp"
+        android:layout_height="15dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="8dp"
+        android:background="@color/colorAccent"
+        app:layout_constraintBottom_toTopOf="@+id/HF_scrollHabits"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/HF_circBar">
+
+        <LinearLayout
+            android:id="@+id/HF_trackHolder"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:paddingBottom="5dp"
+            android:paddingTop="5dp">
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <HorizontalScrollView
+        android:id="@+id/HF_scrollHabits"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"

@@ -10,24 +10,29 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 public class HabitInfo {
-    public String sName;
-    public String sDesc;
-    public int iGoal;
-    public String sTrigger;
-    public String sReplacement;
+    public String name;
+    public String desc;
+    public int goal;
+    public String trigger;
+    public String replacement;
 
     public Context context;
-    //HABIT PLAN?
+
+    public int week = 0;
+    public int done = 0;
+    public String startDay;
+    public boolean skipped = false;
 
     public HabitInfo() {};
 
-    public HabitInfo(Context context, String hName, String hDesc, int hGoal, String hTrigger, String hReplacement) {
+    public HabitInfo(Context context, String hName, String hDesc, int hGoal, String hTrigger, String hReplacement, String sDay) {
         context = context;
-        sName = hName;
-        sDesc = hDesc;
-        iGoal = hGoal;
-        sTrigger = hTrigger;
-        sReplacement = hReplacement;
+        name = hName;
+        desc = hDesc;
+        goal = hGoal;
+        trigger = hTrigger;
+        replacement = hReplacement;
+        startDay = sDay;
     }
 
     public void saveToFile(String fileName) {
