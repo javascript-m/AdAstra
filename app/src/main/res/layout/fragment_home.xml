@@ -9,8 +9,8 @@
     <ProgressBar
         android:id="@+id/HF_circBar"
         style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="350dp"
-        android:layout_height="350dp"
+        android:layout_width="335dp"
+        android:layout_height="310dp"
         android:layout_marginEnd="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
@@ -27,51 +27,25 @@
 
     <TextView
         android:id="@+id/HF_progressTxt"
-        android:layout_width="202dp"
-        android:layout_height="48dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="65%"
+        android:text="0%"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="@+id/HF_circBar"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.467"
         app:layout_constraintStart_toStartOf="@+id/HF_circBar"
-        app:layout_constraintTop_toTopOf="@+id/HF_circBar" />
+        app:layout_constraintTop_toTopOf="@+id/HF_circBar"
+        app:layout_constraintVertical_bias="0.492" />
 
     <HorizontalScrollView
-        android:id="@+id/HF_scrollProgress"
-        android:layout_width="0dp"
-        android:layout_height="15dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginLeft="24dp"
-        android:layout_marginRight="24dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="8dp"
-        android:background="@color/colorAccent"
-        app:layout_constraintBottom_toTopOf="@+id/HF_scrollHabits"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/HF_circBar">
-
-        <LinearLayout
-            android:id="@+id/HF_trackHolder"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:paddingBottom="5dp"
-            android:paddingTop="5dp">
-
-        </LinearLayout>
-    </HorizontalScrollView>
-
-    <HorizontalScrollView
-        android:id="@+id/HF_scrollHabits"
+        android:id="@+id/HF_scrollView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
@@ -85,90 +59,187 @@
         app:layout_constraintStart_toStartOf="parent">
 
         <LinearLayout
-            android:id="@+id/HF_habitHolder"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:paddingBottom="5dp"
-            android:paddingTop="5dp">
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-            <Button
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:background="@drawable/empty_habit_button"
-                android:textSize="40sp" />
+            <LinearLayout
+                android:id="@+id/HF_progressHolder"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
 
-            <TextView
-                android:layout_width="17dp"
-                android:layout_height="match_parent" />
+                <TextView
+                    android:layout_width="70dp"
+                    android:layout_height="wrap_content"
+                    android:padding="5dp"
+                    android:textAlignment="center"
+                    android:textSize="14sp" />
 
-            <Button
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:background="@drawable/empty_habit_button"
-                android:textSize="40sp" />
+                <TextView
+                    android:layout_width="18dp"
+                    android:text=""
+                    android:layout_height="match_parent" />
 
-            <TextView
-                android:layout_width="17dp"
-                android:layout_height="match_parent" />
+                <TextView
+                    android:layout_width="70dp"
+                    android:layout_height="wrap_content"
+                    android:padding="5dp"
+                    android:text=""
+                    android:textAlignment="center"
+                    android:textSize="14sp" />
 
-            <Button
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:background="@drawable/empty_habit_button"
-                android:textSize="40sp" />
+                <TextView
+                    android:layout_width="18dp"
+                    android:text=""
+                    android:layout_height="match_parent" />
 
-            <TextView
-                android:layout_width="17dp"
-                android:layout_height="match_parent" />
+                <TextView
+                    android:layout_width="70dp"
+                    android:layout_height="wrap_content"
+                    android:padding="5dp"
+                    android:text=""
+                    android:textAlignment="center"
+                    android:textSize="14sp" />
 
-            <Button
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:background="@drawable/empty_habit_button"
-                android:textSize="40sp"
-                android:visibility="gone" />
+                <TextView
+                    android:layout_width="18dp"
+                    android:text=""
+                    android:layout_height="match_parent" />
 
-            <TextView
-                android:layout_width="17dp"
-                android:layout_height="match_parent"
-                android:visibility="gone" />
+                <TextView
+                    android:layout_width="70dp"
+                    android:layout_height="wrap_content"
+                    android:padding="5dp"
+                    android:text=""
+                    android:textAlignment="center"
+                    android:textSize="14sp" />
 
-            <Button
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:background="@drawable/empty_habit_button"
-                android:textSize="40sp"
-                android:visibility="gone" />
+                <TextView
+                    android:layout_width="18dp"
+                    android:text=""
+                    android:visibility="gone"
+                    android:layout_height="match_parent" />
 
-            <TextView
-                android:layout_width="17dp"
-                android:layout_height="match_parent"
-                android:visibility="gone" />
+                <TextView
+                    android:layout_width="70dp"
+                    android:layout_height="wrap_content"
+                    android:padding="5dp"
+                    android:text=""
+                    android:visibility="gone"
+                    android:textAlignment="center"
+                    android:textSize="14sp" />
 
-            <Button
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:background="@drawable/empty_habit_button"
-                android:textSize="40sp"
-                android:visibility="gone" />
+                <TextView
+                    android:layout_width="18dp"
+                    android:text=""
+                    android:visibility="gone"
+                    android:layout_height="match_parent" />
 
-            <TextView
-                android:layout_width="17dp"
-                android:layout_height="match_parent"
-                android:visibility="gone" />
+                <TextView
+                    android:layout_width="70dp"
+                    android:layout_height="wrap_content"
+                    android:padding="5dp"
+                    android:text=""
+                    android:visibility="gone"
+                    android:textAlignment="center"
+                    android:textSize="14sp" />
 
-            <Button
-                android:id="@+id/HF_add"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:background="@drawable/add_habit_button"
-                android:text="+"
-                android:textAlignment="center"
-                android:textColor="@android:color/white"
-                android:textSize="40sp"
-                android:textStyle="bold"
-                android:typeface="sans" />
+                <TextView
+                    android:layout_width="18dp"
+                    android:text=""
+                    android:visibility="gone"
+                    android:layout_height="match_parent" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/HF_habitHolder"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingBottom="5dp"
+                android:paddingTop="5dp">
+
+                <Button
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:background="@drawable/empty_habit_button"
+                    android:textSize="40sp" />
+
+                <TextView
+                    android:layout_width="18dp"
+                    android:layout_height="match_parent" />
+
+                <Button
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:background="@drawable/empty_habit_button"
+                    android:textSize="40sp" />
+
+                <TextView
+                    android:layout_width="18dp"
+                    android:layout_height="match_parent" />
+
+                <Button
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:background="@drawable/empty_habit_button"
+                    android:textSize="40sp" />
+
+                <TextView
+                    android:layout_width="18dp"
+                    android:layout_height="match_parent" />
+
+                <Button
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:background="@drawable/empty_habit_button"
+                    android:textSize="40sp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:layout_width="18dp"
+                    android:layout_height="match_parent"
+                    android:visibility="gone" />
+
+                <Button
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:background="@drawable/empty_habit_button"
+                    android:textSize="40sp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:layout_width="18dp"
+                    android:layout_height="match_parent"
+                    android:visibility="gone" />
+
+                <Button
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:background="@drawable/empty_habit_button"
+                    android:textSize="40sp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:layout_width="18dp"
+                    android:layout_height="match_parent"
+                    android:visibility="gone" />
+
+                <Button
+                    android:id="@+id/HF_add"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:background="@drawable/add_habit_button"
+                    android:text="+"
+                    android:textAlignment="center"
+                    android:textColor="@android:color/white"
+                    android:textSize="40sp"
+                    android:textStyle="bold"
+                    android:typeface="sans" />
+
+            </LinearLayout>
 
         </LinearLayout>
     </HorizontalScrollView>

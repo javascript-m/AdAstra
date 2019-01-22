@@ -1,7 +1,7 @@
 package com.ad_astra.maja.adastra;
 
 public class HabitPlan {
-    public int[][] plan = new int[][]{
+    public static int[][] plan = new int[][]{
             { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
             { 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 },
             { 3, 3, 3, 3, 3, 3, 3, 3, 3, 3 },

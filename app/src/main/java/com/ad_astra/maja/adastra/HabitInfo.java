@@ -20,12 +20,12 @@ public class HabitInfo {
 
     public int week = 0;
     public int done = 0;
-    public String startDay;
+    public long startDay;
     public boolean skipped = false;
 
     public HabitInfo() {};
 
-    public HabitInfo(Context context, String hName, String hDesc, int hGoal, String hTrigger, String hReplacement, String sDay) {
+    public HabitInfo(Context context, String hName, String hDesc, int hGoal, String hTrigger, String hReplacement, long sDay) {
         context = context;
         name = hName;
         desc = hDesc;

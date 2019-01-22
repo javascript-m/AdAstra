@@ -17,12 +17,20 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 /* Unutar validate inputs (update)
+GOAL TREBA ISCITAVAT PROGRESS BAR
 Mozes obrisat onaj dolje add success listener
 treba na UI dodat hReplacement i dodat ChooseHabit actitvity sa intentom ispred
 * */
@@ -43,7 +51,6 @@ public class AddHabit extends AppCompatActivity {
     FirebaseAuth mAuth;
     FirebaseFirestore db;
 
-    Set<String> hList;
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
 
@@ -95,6 +102,18 @@ public class AddHabit extends AppCompatActivity {
         }
     }
 
+    public long getMidnight(int day) {
+        Calendar date = new GregorianCalendar();
+        date.set(Calendar.HOUR_OF_DAY, 0);
+        date.set(Calendar.MINUTE, 0);
+        date.set(Calendar.SECOND, 0);
+        date.set(Calendar.MILLISECOND, 0);
+
+        date.add(Calendar.DAY_OF_MONTH, day);
+
+        return date.getTime().getTime()/1000;
+    }
+
     private boolean validateInputs() {
         name = hName.getText().toString().trim();
         desc = hDesc.getText().toString().trim();
@@ -102,6 +121,8 @@ public class AddHabit extends AppCompatActivity {
         replacement = "replacement";
         goal = 2;
         //Get GOAL and REPLACEMENT VALUE
+
+        //KAD SPREMAS SVE TO LOWERCASE I STIRP(TRIM)
 
         if (name.isEmpty()) {
             hName.setError("Name is required.");
@@ -118,9 +139,7 @@ public class AddHabit extends AppCompatActivity {
 
     //Create habitInfo file and add habit name to userInfo file
     private void submitHabitChanges() {
-        String TWD = HomeFragment.getWeekDay(Calendar.getInstance().get(Calendar.DAY_OF_WEEK));
-        final HabitInfo habitInfo = new HabitInfo(context, name, desc, goal, trigger, replacement, TWD);
-
+        final HabitInfo habitInfo = new HabitInfo(context, name, desc, goal, trigger, replacement, getMidnight(0));
         db.collection("users").document(userID).collection("habits").document(name).set(habitInfo);
 
         user.habitList.add(name);
