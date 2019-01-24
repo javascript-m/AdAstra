@@ -1,17 +1,32 @@
 package com.ad_astra.maja.adastra;
 
 
+import android.annotation.SuppressLint;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.res.ResourcesCompat;
+import android.text.Layout;
 import android.util.Log;
-import android.util.Pair;
+import android.view.GestureDetector;
+import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -20,13 +35,16 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -35,9 +53,13 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
-import java.time.Period;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -47,15 +69,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-/*
- * initalize new day()
- * 207: u intentu poslat nes da naglasis da treba ucitat stare podatke i updateat samo blabla -> ime navike ne smin minjat!
- *
+/* 207: u intentu poslat nes da naglasis da treba ucitat stare podatke i updateat samo blabla -> ime navike ne smin minjat!
  * Bodove dobivam svaki put kad nešto napravim!! i to npr 25*(a+b)
- *
  * */
 
 public class HomeFragment extends Fragment {
+
+    private final String TAG = "HOME FRAGMENT";
 
     User user;
     String userID;
@@ -74,9 +94,12 @@ public class HomeFragment extends Fragment {
 
     FirebaseAuth mAuth;
     FirebaseFirestore db;
+    FirebaseStorage storage;
+    StorageReference storageReference;
 
     Map<String, HabitInfo> habitsData = new HashMap<>();
     Set<String> toDo = new HashSet<>();
+    Set<String> curState;
     int habitsDone = 0;
     long dayTime = 86400; // 24 * 60 * 60
 
@@ -116,16 +139,23 @@ public class HomeFragment extends Fragment {
         //Initialize Authentication and Firestore
         user = new User();
         mAuth = FirebaseAuth.getInstance();
+        storage = FirebaseStorage.getInstance();
+        storageReference = storage.getReference();
         db = FirebaseFirestore.getInstance();
         userID = mAuth.getCurrentUser().getUid();
+
+        setRealtimeUpdates();
 
         //Shared Preferences: used for accessing today's habit data quickly
         context = getContext();
         addHabit = new AddHabit();
         sharedPref = context.getSharedPreferences(userID, Context.MODE_PRIVATE);
 
-        getHabitData();
-        setRealtimeUpdates();
+        curState = sharedPref.getStringSet(activeWeekDay, new HashSet<String>());
+
+        /*editor = sharedPref.edit();
+        editor.clear();
+        editor.apply();*/
 
         dayManager = (TabLayout) homeFragment.findViewById(R.id.HF_week);
 
@@ -172,12 +202,16 @@ public class HomeFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        uploadDataOnline();
+        for (Map.Entry<String, HabitInfo> hp : habitsData.entrySet()) {
+            uploadDataOnline(hp.getKey());
+        }
     }
 
-    public void uploadDataOnline() {
-        for (Map.Entry<String, HabitInfo> hp : habitsData.entrySet()) {
-            db.collection("users").document(userID).collection("habits").document(hp.getKey()).set(hp.getValue(), SetOptions.merge());
+    public void uploadDataOnline(String hName) {
+        try {
+            db.collection("users").document(userID).collection("habits").document(hName).set(habitsData.get(hName), SetOptions.merge());
+        } catch (Exception e) {
+            Log.d(TAG, "Failed to upload data online");
         }
     }
 
@@ -220,6 +254,7 @@ public class HomeFragment extends Fragment {
             editor.putStringSet(todaysWeekDay, state);
             editor.apply();
         }
+        getHabitData();
     }
 
     //Real-time updates listener (checks if database state has changed)
@@ -234,7 +269,6 @@ public class HomeFragment extends Fragment {
                         if (snapshot != null && snapshot.exists()) {
                             user = snapshot.toObject(User.class);
                             if (user != null) {
-                                updateHomeScreen();
                                 initializeNewDay();
                             }
                         }
@@ -242,50 +276,98 @@ public class HomeFragment extends Fragment {
                 });
     }
 
-    //Change state listener
-    public View.OnClickListener btnListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            String hName = (String) v.getTag();
-            Map<String, Object> setData = new HashMap<>();
-            HabitInfo hInfo = habitsData.get(hName);
+    private void arrangeButtonStyle(View btn, String state) {
+        LayerDrawable layerList = (LayerDrawable) btn.getBackground();
 
-            String newVal;
-            Set<String> state = new HashSet<>(sharedPref.getStringSet(activeWeekDay, new HashSet<String>()));
+        Objects.requireNonNull(layerList).mutate();
+        layerList.findDrawableByLayerId(R.id.habitButtonDone).setAlpha(0);
+        layerList.findDrawableByLayerId(R.id.habitButtonSkipped).setAlpha(0);
 
-            if (state.contains("T" + hName)) {
-                state.remove("T" + hName);
-                state.add("F" + hName);
-                newVal = "false";
-                habitsDone--;
-                hInfo.done--;
-            } else {
-                if (state.contains("F" + hName)) state.remove("F" + hName);
-                state.add("T" + hName);
-                newVal = "true";
-                habitsDone++;
-                hInfo.done++;
-            }
-
-            updateUpperText(hName, habitHolder.indexOfChild(v));
-
-            if (toDo.contains(hName)) updateProgressBar();
-
-            if (newVal.equals("true")) v.setBackgroundResource(R.drawable.habit_btn_done);
-            else v.setBackgroundResource(R.drawable.habit_btn);
-
-            editor = sharedPref.edit();
-            editor.putStringSet(activeWeekDay, state);
-            editor.apply();
-
-            setData.put(hName, newVal);
-            try {
-                db.collection("users").document(userID).collection("events").document(activeWeekDate).set(setData, SetOptions.merge());
-            } catch (Exception e) {
-                Log.d("HOME FRAGMENT", e.toString());
-            }
+        switch (state) {
+            case "true":
+                layerList.findDrawableByLayerId(R.id.habitButtonDone).setAlpha(255);
+                break;
+            case "false":
+                break;
+            case "skipped":
+                layerList.findDrawableByLayerId(R.id.habitButtonSkipped).setAlpha(255);
+                break;
+            case "completed":
+                break;
         }
-    };
+
+        layerList.invalidateSelf();
+        btn.setBackground(layerList);
+    }
+
+    private void hButtonChangeState(View v) {
+        String hName = (String) v.getTag();
+        Map<String, Object> setData = new HashMap<>();
+        HabitInfo hInfo = habitsData.get(hName);
+
+        String state = "false";
+
+        if (curState.contains("T"+hName)) {
+            curState.remove("T"+hName);
+            curState.add("F"+hName);
+            state = "false";
+            hInfo.done--;
+            if (toDo.contains(hName)) habitsDone--;
+        } else if (curState.contains("F"+hName)) {
+            curState.remove("F"+hName);
+            curState.add("T"+hName);
+            state = "true";
+            hInfo.done++;
+            if (toDo.contains(hName)) habitsDone++;
+        }
+
+        updateUpperText(hName, habitHolder.indexOfChild(v));
+        updateProgressBar();
+        arrangeButtonStyle(v, state);
+
+        editor = sharedPref.edit();
+        editor.putStringSet(activeWeekDay, curState);
+        editor.apply();
+        setData.put(hName, state);
+        try {
+            db.collection("users").document(userID).collection("events").document(activeWeekDate).set(setData, SetOptions.merge());
+        } catch (Exception e) {
+            Log.d(TAG, e.toString());
+        }
+    }
+
+    private void hButtonSkip(View v) {
+        try {
+            String hName = v.getTag().toString();
+            HabitInfo hInfo = habitsData.get(hName);
+            uploadDataOnline(hInfo.name);
+
+            habitsData.put(hName, hInfo);
+
+            if (curState.contains("S"+hName)) {
+                toDo.add(hName);
+
+                curState.remove("S"+hName);
+                curState.add("F"+hName);
+
+                arrangeButtonStyle(v, "false");
+            } else {
+                toDo.remove(hName);
+
+                curState.remove("F"+hName);
+                curState.add("S"+hName);
+
+                arrangeButtonStyle(v, "skipped");
+            }
+            updateProgressBar();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void hButtonEditInfo(View v) {
+
+    }
 
     private void getHabitData() {
         db.collection("users").document(userID).collection("habits")
@@ -315,7 +397,7 @@ public class HomeFragment extends Fragment {
                                                                 tasksDone++;
                                                             }
                                                         } catch (Exception e) {
-                                                            Log.d("HOME FRAGMENT", "Parameter is not defined");
+                                                            Log.d(TAG, "Parameter is not defined");
                                                         }
                                                     }
 
@@ -340,18 +422,17 @@ public class HomeFragment extends Fragment {
                                             hInfo.week--;
                                         hInfo.done = 0;
                                         hInfo.startDay = toDay;
-                                        hInfo.skipped = false;
                                         db.collection("users").document(userID).collection("habits").document(hInfo.name).set(hInfo, SetOptions.merge());
                                     } //Otherwise it's still the same week
 
                                     habitsData.put(hInfo.name, hInfo);
-                                    updateHomeScreen();
                                 } catch (Exception e) {
-                                    Log.d("HOME FRAGMENT", e.toString());
+                                    Log.d(TAG, e.toString());
                                 }
                             }
+                            createHomeScreen();
                         } else {
-                            Log.d("HOME FRAGMENT", "Error reading document");
+                            Log.d(TAG, "Error reading document");
                         }
                     }
                 });
@@ -368,7 +449,7 @@ public class HomeFragment extends Fragment {
             txt.setVisibility(View.VISIBLE);
             progressHolder.getChildAt(pos+1).setVisibility(View.VISIBLE);
         };
-        uploadDataOnline();
+        uploadDataOnline(hName);
     }
 
     private void updateProgressBar() {
@@ -383,48 +464,148 @@ public class HomeFragment extends Fragment {
         progressText.setText(valueTxt);
     }
 
-    private boolean needsToBeDone(String hName, String isDone) {
+    private boolean needsToBeDone(String hName) {
         HabitInfo hInfo = habitsData.get(hName);
-        if (hInfo.skipped) return false;
-        else if(isDone.equals("true") && hInfo.done > HabitPlan.plan[hInfo.goal-1][hInfo.week]) return false;
-        else if(isDone.equals("false") && hInfo.done >= HabitPlan.plan[hInfo.goal-1][hInfo.week]) return false;
+        if (curState.contains("S"+hName)) return false;
+        else if(curState.contains("T"+hName) && hInfo.done > HabitPlan.plan[hInfo.goal-1][hInfo.week]) return false;
+        else if(curState.contains("F"+hName) && hInfo.done >= HabitPlan.plan[hInfo.goal-1][hInfo.week]) return false;
         return true;
     }
 
-    private void updateHomeScreen() {
-        Set<String> curState = sharedPref.getStringSet(activeWeekDay, new HashSet<String>());
+    private void createHomeScreen() {
         int cnt = 0;
         habitsDone = 0;
         toDo = new HashSet<>();
-        for (String hName : user.habitList) {
-            final String isDone;
-            if (curState.contains("T"+hName)) isDone = "true";
-            else {
-                curState.add("F"+hName);
-                isDone = "false";
-            }
 
-            final View v = habitHolder.getChildAt(2*cnt);
-            v.setVisibility(View.VISIBLE);
-            v.setTag(hName);
+        if (curState.isEmpty()) {
+            for (final String hName : user.habitList)
+                curState.add("F"+hName);
+        }
+
+        for (final String hName : user.habitList) {
+            final String state;
+            if (curState.contains("T"+hName))
+                state = "true";
+            else if (curState.contains("F"+hName))
+                state = "false";
+            else
+                state = "skipped";
+
+            final View btnView = habitHolder.getChildAt(2*cnt);
+            btnView.setVisibility(View.VISIBLE);
+            btnView.setTag(hName);
 
             if (!habitsData.isEmpty()) {
                 updateUpperText(hName, 2*cnt);
                 //If the habit is not skipped and finished for this week, add to to_do set
-                if (needsToBeDone(hName, isDone)) {
-                    if (isDone.equals("true")) habitsDone++;
+                if (needsToBeDone(hName)) {
+                    if (state.equals("true")) habitsDone++;
                     toDo.add(hName);
                 }
-                v.setOnClickListener(btnListener);
-                //v.setOnLongClickListener();
-            }
 
-            if (isDone.equals("true")) v.setBackgroundResource(R.drawable.habit_btn_done);
-            else v.setBackgroundResource(R.drawable.habit_btn);
+                try {
+                    String imgUrl = habitsData.get(hName).imgUriS;
+                    if (!imgUrl.isEmpty() && !imgUrl.equals("textImage")) {
+                        StorageReference httpsReference = storage.getReferenceFromUrl(imgUrl);
+
+                        final long ONE_MEGABYTE = 1024 * 1024;
+                        httpsReference.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                            @Override
+                            public void onSuccess(byte[] bytes) {
+                                Drawable habitIcon = new BitmapDrawable(getResources(), BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
+
+                                try {
+                                    LayerDrawable layerList = (LayerDrawable) ResourcesCompat.getDrawable(getResources(), R.drawable.habit_btn, null);
+                                    Objects.requireNonNull(layerList).mutate();
+                                    layerList.setDrawable(0, habitIcon);
+                                    layerList.invalidateSelf();
+                                    btnView.setBackground(layerList);
+                                    arrangeButtonStyle(btnView, state);
+                                } catch (Exception e) {
+                                    Log.d(TAG, "Habit icon display failed.");
+                                }
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception exception) {
+                                // Handle any errors
+                            }
+                        });
+                    } else {
+                        TextDrawable textDrawable = new TextDrawable(getContext());
+                        textDrawable.setText(hName.toUpperCase());
+                        textDrawable.setTextSize(20);
+                        textDrawable.setTextColor(getResources().getColor(R.color.colorAccent, null));
+                        textDrawable.setTextAlign(Layout.Alignment.ALIGN_CENTER);
+
+                        LayerDrawable layerList = (LayerDrawable) ResourcesCompat.getDrawable(getResources(), R.drawable.habit_btn, null);
+                        Objects.requireNonNull(layerList).mutate();
+                        layerList.setDrawable(0, textDrawable);
+                        layerList.setLayerGravity(0, Gravity.CENTER);
+                        layerList.invalidateSelf();
+                        btnView.setBackground(layerList);
+
+                        arrangeButtonStyle(btnView, state);
+                    }
+                } catch (Exception e) {
+                    Log.d(TAG, "Adding habit icon error.");
+                }
+
+                btnView.setOnTouchListener(new View.OnTouchListener() {
+                    private GestureDetector gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
+                        @Override
+                        public boolean onSingleTapConfirmed(MotionEvent e) {
+                            if (!curState.contains("S"+hName))
+                                hButtonChangeState(btnView);
+                            return super.onSingleTapConfirmed(e);
+                        }
+                        @Override
+                        public boolean onDoubleTap(MotionEvent e) {
+                            if (!curState.contains("T"+hName))
+                                hButtonSkip(btnView);
+                            return super.onDoubleTap(e);
+                        }
+                        @Override
+                        public void onLongPress(MotionEvent e) {
+                            hButtonEditInfo(btnView);
+                            super.onLongPress(e);
+                        }
+                    });
+
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        gestureDetector.onTouchEvent(event);
+                        return true;
+                    }
+                });
+            }
 
             habitHolder.getChildAt(2*cnt+1).setVisibility(View.VISIBLE);
             cnt++;
         }
-        //updateProgressBar();
+        updateProgressBar();
+    }
+
+    private void updateHomeScreen() {
+        curState = sharedPref.getStringSet(activeWeekDay, new HashSet<String>());
+        int cnt = 0;
+        for (final String hName : user.habitList) {
+            final String state;
+            if (curState.contains("T"+hName))
+                state = "true";
+            else if (curState.contains("F"+hName))
+                state = "false";
+            else {
+                curState.add("S"+hName);
+                state = "skipped";
+            }
+
+            final View btnView = habitHolder.getChildAt(2*cnt);
+
+            arrangeButtonStyle(btnView, state);
+
+            cnt++;
+        }
+        updateProgressBar();
     }
 }

@@ -3,6 +3,9 @@ package com.ad_astra.maja.adastra;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -10,24 +13,23 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.SeekBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
+import java.io.IOException;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 /* Unutar validate inputs (update)
 GOAL TREBA ISCITAVAT PROGRESS BAR
@@ -36,6 +38,8 @@ treba na UI dodat hReplacement i dodat ChooseHabit actitvity sa intentom ispred
 * */
 
 public class AddHabit extends AppCompatActivity {
+
+    private static final int ADD_IMAGE = 125;
 
     ImageView hImg;
     EditText hName, hDesc, hTrigger, hReplacement;
@@ -50,6 +54,10 @@ public class AddHabit extends AppCompatActivity {
     Context context;
     FirebaseAuth mAuth;
     FirebaseFirestore db;
+    FirebaseStorage storage;
+    StorageReference storageReference;
+    Uri uriDownload;
+    Uri uriHabitIcon;
 
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
@@ -63,6 +71,8 @@ public class AddHabit extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         userID = mAuth.getCurrentUser().getUid();
         db = FirebaseFirestore.getInstance();
+        storage = FirebaseStorage.getInstance();
+        storageReference = storage.getReference();
 
         context = (Context) getApplicationContext();
         sharedPref = context.getSharedPreferences(userID, Context.MODE_PRIVATE);
@@ -99,6 +109,58 @@ public class AddHabit extends AppCompatActivity {
                     startActivity(new Intent(AddHabit.this, HomeScreen.class));
                 }
                 break;
+            case R.id.AAH_img:
+                chooseImage();
+                break;
+        }
+    }
+
+    //Intent that opens image chooser
+    private void chooseImage() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Select habit icon"), ADD_IMAGE);
+    }
+    //Adding habit icon to storage
+    private void uploadImgToFirebaseStorage() {
+        if (uriHabitIcon != null) {
+            final StorageReference refPic = storageReference.child(userID+"/"+System.currentTimeMillis()+".jpg");
+            UploadTask uploadTask = refPic.putFile(uriHabitIcon);
+
+            Task<Uri> URLtask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                @Override
+                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                    if (!task.isSuccessful()) {
+                        throw task.getException();
+                    }
+                    // Continue with the task to get the download URL
+                    return refPic.getDownloadUrl();
+                }
+            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+                @Override
+                public void onComplete(@NonNull Task<Uri> task) {
+                    if (task.isSuccessful()) {
+                        uriDownload = task.getResult();
+                    }
+                }
+            });
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == ADD_IMAGE && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            uriHabitIcon = data.getData();
+            try {
+                Bitmap bmp = MediaStore.Images.Media.getBitmap(getContentResolver(), uriHabitIcon);
+                hImg.setImageBitmap(bmp);
+                uploadImgToFirebaseStorage();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -134,12 +196,16 @@ public class AddHabit extends AppCompatActivity {
             hName.requestFocus();
             return false;
         }
+        if (uriDownload == null) {
+            uriDownload = Uri.parse("textImage");
+            return false;
+        }
         return true;
     }
 
     //Create habitInfo file and add habit name to userInfo file
     private void submitHabitChanges() {
-        final HabitInfo habitInfo = new HabitInfo(context, name, desc, goal, trigger, replacement, getMidnight(0));
+        final HabitInfo habitInfo = new HabitInfo(context, name, desc, goal, trigger, replacement, getMidnight(0), uriDownload.toString());
         db.collection("users").document(userID).collection("habits").document(name).set(habitInfo);
 
         user.habitList.add(name);

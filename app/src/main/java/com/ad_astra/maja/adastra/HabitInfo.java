@@ -2,6 +2,7 @@ package com.ad_astra.maja.adastra;
 
 
 import android.content.Context;
+import android.net.Uri;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -16,6 +17,8 @@ public class HabitInfo {
     public String trigger;
     public String replacement;
 
+    public String imgUriS;
+
     public Context context;
 
     public int week = 0;
@@ -25,7 +28,7 @@ public class HabitInfo {
 
     public HabitInfo() {};
 
-    public HabitInfo(Context context, String hName, String hDesc, int hGoal, String hTrigger, String hReplacement, long sDay) {
+    public HabitInfo(Context context, String hName, String hDesc, int hGoal, String hTrigger, String hReplacement, long sDay, String uriS) {
         context = context;
         name = hName;
         desc = hDesc;
@@ -33,6 +36,8 @@ public class HabitInfo {
         trigger = hTrigger;
         replacement = hReplacement;
         startDay = sDay;
+
+        imgUriS = uriS;
     }
 
     public void saveToFile(String fileName) {

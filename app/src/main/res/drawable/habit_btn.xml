@@ -1,9 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/habitButton"
+        android:drawable="@drawable/empty_habit_button" />
+    <item
+        android:id="@+id/habitButtonDone"
+        android:drawable="@drawable/state_habit_done" />
+    <item
+        android:id="@+id/habitButtonSkipped"
+        android:drawable="@drawable/state_habit_skipped" />
     <item>
-        <shape android:shape="oval"  >
-            <size android:height="70dp" android:width="70dp"/>
-            <solid android:color="#000c3d" />
+        <shape
+            android:shape="ring"
+            android:innerRadiusRatio="2"
+            android:innerRadius="33dp"
+            android:useLevel="false">
+
+            <solid android:color="#FF001465" />
         </shape>
     </item>
-</selector>
+    <item>
+        <shape
+            android:shape="ring"
+            android:innerRadiusRatio="2"
+            android:thickness="50dp"
+            android:useLevel="false">
+
+            <solid android:color="#ffffff" />
+        </shape>
+    </item>
+</layer-list>

@@ -169,7 +169,7 @@ public class MyProfile extends AppCompatActivity {
                 public void onComplete(@NonNull Task<Uri> task) {
                     if (task.isSuccessful()) {
                         downloadUrl = task.getResult();
-                        Toast.makeText(MyProfile.this, "Uploaded ", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MyProfile.this, downloadUrl.toString(), Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(MyProfile.this, "Upload failed", Toast.LENGTH_SHORT).show();
                     }
