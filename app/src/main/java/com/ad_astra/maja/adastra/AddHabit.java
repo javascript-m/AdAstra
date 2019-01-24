@@ -4,25 +4,33 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Layout;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.SeekBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -30,6 +38,9 @@ import com.google.firebase.storage.UploadTask;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Objects;
+
+import static android.provider.AlarmClock.EXTRA_MESSAGE;
 
 /* Unutar validate inputs (update)
 GOAL TREBA ISCITAVAT PROGRESS BAR
@@ -47,6 +58,7 @@ public class AddHabit extends AppCompatActivity {
 
     String name, desc, trigger, replacement;
     int goal;
+    String activityMode;
 
     User user;
     String userID;
@@ -84,30 +96,31 @@ public class AddHabit extends AppCompatActivity {
         hDesc = (EditText)findViewById(R.id.AAH_desc);
         hTrigger = (EditText)findViewById(R.id.AAH_trigger);
         //hReplacement = (EditText)findViewById(R.id.AAH_replacement);
+
+        // Get message if turned to Edit Habit Info mode
+        activityMode = getIntent().getStringExtra(EXTRA_MESSAGE);
+        if (!activityMode.equals("add habit")) {
+            hName.setEnabled(false);
+            loadHabitData();
+        }
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        db.collection("users").document(mAuth.getCurrentUser().getUid())
-        .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    user = task.getResult().toObject(User.class);
-                }
-            }
-        });
     }
 
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.AAH_submit:
-                if (validateInputs()) {
-                    submitHabitChanges();
-                    finish();
-                    startActivity(new Intent(AddHabit.this, HomeScreen.class));
+                if (!validateInputs()) return;
+                if (activityMode.equals("add habit")) {
+                    submitAddChanges();
+                } else {
+                    submitEditChanges();
                 }
+                finish();
+                startActivity(new Intent(AddHabit.this, HomeScreen.class));
                 break;
             case R.id.AAH_img:
                 chooseImage();
@@ -204,11 +217,68 @@ public class AddHabit extends AppCompatActivity {
     }
 
     //Create habitInfo file and add habit name to userInfo file
-    private void submitHabitChanges() {
+    private void submitAddChanges() {
         final HabitInfo habitInfo = new HabitInfo(context, name, desc, goal, trigger, replacement, getMidnight(0), uriDownload.toString());
         db.collection("users").document(userID).collection("habits").document(name).set(habitInfo);
 
         user.habitList.add(name);
         db.collection("users").document(userID).set(user);
+    }
+
+
+    public LayerDrawable circleBtn(Drawable drawMe, boolean isText) {
+        LayerDrawable layerList = (LayerDrawable) ResourcesCompat.getDrawable(getResources(), R.drawable.habit_btn, null);
+        Objects.requireNonNull(layerList).mutate();
+        if (isText) layerList.setLayerGravity(0, Gravity.CENTER);
+        layerList.findDrawableByLayerId(R.id.habitButtonDone).setAlpha(0);
+        layerList.findDrawableByLayerId(R.id.habitButtonSkipped).setAlpha(0);
+        layerList.setDrawable(0, drawMe);
+        layerList.invalidateSelf();
+
+        return layerList;
+    }
+
+    //EDIT MODE FUNCTIONS
+    private void loadHabitData() {
+        db.collection("users").document(userID).collection("habits").document(activityMode)
+                .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        HabitInfo habitInfo = documentSnapshot.toObject(HabitInfo.class);
+                        hName.setText(habitInfo.name.toUpperCase());
+                        hGoal.setProgress(habitInfo.goal);
+                        hDesc.setText(habitInfo.desc);
+                        hTrigger.setText(habitInfo.trigger);
+                        //hReplacement.setText(habitInfo.replacement);
+
+                        if (!habitInfo.imgUriS.isEmpty() && !habitInfo.imgUriS.equals("textImage")) {
+                            StorageReference httpsReference = storage.getReferenceFromUrl(habitInfo.imgUriS);
+                            final long ONE_MEGABYTE = 1024 * 1024;
+                            httpsReference.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                                @Override
+                                public void onSuccess(byte[] bytes) {
+                                    Drawable habitIcon = new BitmapDrawable(getResources(), BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
+                                    LayerDrawable layerList = circleBtn(habitIcon, false);
+                                    hImg.setBackground(layerList);
+
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception exception) {
+                                    Log.d("ADD HABIT", "Error loading habit icon.");
+                                }
+                            });
+                        } else {
+                            TextDrawable textDrawable = new TextDrawable(AddHabit.this);
+                            textDrawable.addCustomStyle(habitInfo.name);
+                            LayerDrawable layerList = circleBtn(textDrawable, true);
+                            hImg.setBackground(layerList);
+                        }
+                    }
+                });
+    }
+
+    private void submitEditChanges() {
+        //U slucaju dodavanje slike promijeni url
     }
 }

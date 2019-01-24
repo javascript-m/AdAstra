@@ -4,18 +4,19 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/white"
     tools:context=".AddHabit">
 
     <ImageView
         android:id="@+id/AAH_img"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
         android:layout_marginStart="24dp"
         android:layout_marginTop="28dp"
         android:onClick="onClick"
+        android:background="@drawable/empty_habit_button"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/common_google_signin_btn_icon_dark" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
         android:id="@+id/AAH_name"

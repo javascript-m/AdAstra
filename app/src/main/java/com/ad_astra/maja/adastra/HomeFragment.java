@@ -69,6 +69,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import static android.provider.AlarmClock.EXTRA_MESSAGE;
+
 /* 207: u intentu poslat nes da naglasis da treba ucitat stare podatke i updateat samo blabla -> ime navike ne smin minjat!
  * Bodove dobivam svaki put kad nešto napravim!! i to npr 25*(a+b)
  * */
@@ -162,7 +164,10 @@ public class HomeFragment extends Fragment {
         addHabitBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(getActivity(), AddHabit.class));
+                Intent intent = new Intent(getContext(), AddHabit.class);
+                String message = "add habit";
+                intent.putExtra(EXTRA_MESSAGE, message);
+                startActivity(intent);
             }
         });
 
@@ -366,7 +371,22 @@ public class HomeFragment extends Fragment {
     }
 
     private void hButtonEditInfo(View v) {
+        Intent intent = new Intent(getContext(), AddHabit.class);
+        String message = v.getTag().toString();
+        intent.putExtra(EXTRA_MESSAGE, message);
+        startActivity(intent);
+    }
 
+    public LayerDrawable circleBtn(Drawable drawMe, boolean isText) {
+        LayerDrawable layerList = (LayerDrawable) ResourcesCompat.getDrawable(getResources(), R.drawable.habit_btn, null);
+        Objects.requireNonNull(layerList).mutate();
+        if (isText) layerList.setLayerGravity(0, Gravity.CENTER);
+        layerList.findDrawableByLayerId(R.id.habitButtonDone).setAlpha(0);
+        layerList.findDrawableByLayerId(R.id.habitButtonSkipped).setAlpha(0);
+        layerList.setDrawable(0, drawMe);
+        layerList.invalidateSelf();
+
+        return layerList;
     }
 
     private void getHabitData() {
@@ -515,10 +535,7 @@ public class HomeFragment extends Fragment {
                                 Drawable habitIcon = new BitmapDrawable(getResources(), BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
 
                                 try {
-                                    LayerDrawable layerList = (LayerDrawable) ResourcesCompat.getDrawable(getResources(), R.drawable.habit_btn, null);
-                                    Objects.requireNonNull(layerList).mutate();
-                                    layerList.setDrawable(0, habitIcon);
-                                    layerList.invalidateSelf();
+                                    LayerDrawable layerList = circleBtn(habitIcon, false);
                                     btnView.setBackground(layerList);
                                     arrangeButtonStyle(btnView, state);
                                 } catch (Exception e) {
@@ -528,23 +545,14 @@ public class HomeFragment extends Fragment {
                         }).addOnFailureListener(new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception exception) {
-                                // Handle any errors
+                                Log.d(TAG, "Error loading habit icon.");
                             }
                         });
                     } else {
                         TextDrawable textDrawable = new TextDrawable(getContext());
-                        textDrawable.setText(hName.toUpperCase());
-                        textDrawable.setTextSize(20);
-                        textDrawable.setTextColor(getResources().getColor(R.color.colorAccent, null));
-                        textDrawable.setTextAlign(Layout.Alignment.ALIGN_CENTER);
-
-                        LayerDrawable layerList = (LayerDrawable) ResourcesCompat.getDrawable(getResources(), R.drawable.habit_btn, null);
-                        Objects.requireNonNull(layerList).mutate();
-                        layerList.setDrawable(0, textDrawable);
-                        layerList.setLayerGravity(0, Gravity.CENTER);
-                        layerList.invalidateSelf();
+                        textDrawable.addCustomStyle(hName);
+                        LayerDrawable layerList = circleBtn(textDrawable, true);
                         btnView.setBackground(layerList);
-
                         arrangeButtonStyle(btnView, state);
                     }
                 } catch (Exception e) {

@@ -453,4 +453,11 @@ public class TextDrawable extends Drawable {
         }
     }
 
+
+    public void addCustomStyle(String hname) {
+        this.setText(hname.toUpperCase());
+        this.setTextSize(20);
+        this.setTextColor(Color.BLUE);
+        this.setTextAlign(Layout.Alignment.ALIGN_CENTER);
+    }
 }
