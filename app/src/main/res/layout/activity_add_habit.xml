@@ -41,14 +41,14 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
         android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:onClick="onClick"
         android:text="Submit"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/AAH_rep" />
 
     <TextView
         android:id="@+id/AAH_goalTitle"
@@ -79,61 +79,82 @@
         android:id="@+id/AAH_descTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="32dp"
         android:layout_marginStart="32dp"
+        android:layout_marginTop="8dp"
         android:text="Description"
         android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@+id/AAH_desc"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/AAH_goal" />
 
     <EditText
         android:id="@+id/AAH_desc"
         android:layout_width="0dp"
         android:layout_height="60dp"
-        android:layout_marginBottom="8dp"
         android:layout_marginEnd="32dp"
-        android:layout_marginLeft="32dp"
-        android:layout_marginRight="32dp"
         android:layout_marginStart="32dp"
+        android:layout_marginTop="8dp"
         android:ems="10"
-        android:hint="What triggers this behaviour"
+        android:hint="Description"
         android:inputType="textMultiLine"
         android:textColorLink="@android:color/transparent"
         android:textSize="12sp"
-        app:layout_constraintBottom_toTopOf="@+id/AAH_triggerTitle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/AAH_descTitle" />
 
     <TextView
         android:id="@+id/AAH_triggerTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="32dp"
         android:layout_marginStart="32dp"
+        android:layout_marginTop="8dp"
         android:text="Trigger"
         android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@+id/AAH_trigger"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/AAH_desc" />
 
     <EditText
         android:id="@+id/AAH_trigger"
         android:layout_width="0dp"
         android:layout_height="60dp"
-        android:layout_marginBottom="24dp"
         android:layout_marginEnd="32dp"
-        android:layout_marginLeft="32dp"
-        android:layout_marginRight="32dp"
         android:layout_marginStart="32dp"
+        android:layout_marginTop="8dp"
         android:ems="10"
         android:hint="What triggers this behaviour"
         android:inputType="textMultiLine"
         android:textSize="12sp"
-        app:layout_constraintBottom_toTopOf="@+id/AAH_submit"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/AAH_triggerTitle" />
+
+    <TextView
+        android:id="@+id/AAH_repTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="8dp"
+        android:text="Replacement*"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/AAH_trigger" />
+
+    <EditText
+        android:id="@+id/AAH_rep"
+        android:layout_width="0dp"
+        android:layout_height="60dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="8dp"
+        android:ems="10"
+        android:hint="Find a replacament for your habit"
+        android:inputType="textMultiLine"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/AAH_repTitle" />
 
 </android.support.constraint.ConstraintLayout>

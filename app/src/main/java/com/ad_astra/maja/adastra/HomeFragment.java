@@ -1,27 +1,18 @@
 package com.ad_astra.maja.adastra;
 
-
-import android.annotation.SuppressLint;
-import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.ColorFilter;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.res.ResourcesCompat;
-import android.text.Layout;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
@@ -35,10 +26,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.request.target.SimpleTarget;
-import com.bumptech.glide.request.transition.Transition;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -56,9 +43,6 @@ import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -71,8 +55,7 @@ import java.util.Set;
 
 import static android.provider.AlarmClock.EXTRA_MESSAGE;
 
-/* 207: u intentu poslat nes da naglasis da treba ucitat stare podatke i updateat samo blabla -> ime navike ne smin minjat!
- * Bodove dobivam svaki put kad nešto napravim!! i to npr 25*(a+b)
+/* Bodove dobivam svaki put kad nešto napravim!! i to npr 25*(a+b)
  * */
 
 public class HomeFragment extends Fragment {
@@ -122,7 +105,6 @@ public class HomeFragment extends Fragment {
         //Date and time stuff
         weekDays.add("MONDAY"); weekDays.add("TUESDAY"); weekDays.add("WEDNESDAY"); weekDays.add("THURSDAY");
         weekDays.add("FRIDAY"); weekDays.add("SATURDAY"); weekDays.add("SUNDAY");
-
         final Date cDay = Calendar.getInstance().getTime();
         final SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
         todaysDate = df.format(cDay);
@@ -137,6 +119,7 @@ public class HomeFragment extends Fragment {
         progressHolder = (LinearLayout) homeFragment.findViewById(R.id.HF_progressHolder);
         addHabitBtn = (Button) homeFragment.findViewById(R.id.HF_add);
         progressText = (TextView) homeFragment.findViewById(R.id.HF_progressTxt);
+        dayManager = (TabLayout) homeFragment.findViewById(R.id.HF_week);
 
         //Initialize Authentication and Firestore
         user = new User();
@@ -146,20 +129,13 @@ public class HomeFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
         userID = mAuth.getCurrentUser().getUid();
 
-        setRealtimeUpdates();
 
         //Shared Preferences: used for accessing today's habit data quickly
         context = getContext();
         addHabit = new AddHabit();
         sharedPref = context.getSharedPreferences(userID, Context.MODE_PRIVATE);
-
         curState = sharedPref.getStringSet(activeWeekDay, new HashSet<String>());
-
-        /*editor = sharedPref.edit();
-        editor.clear();
-        editor.apply();*/
-
-        dayManager = (TabLayout) homeFragment.findViewById(R.id.HF_week);
+        progressText.setText("OC: "+curState);
 
         addHabitBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -170,6 +146,8 @@ public class HomeFragment extends Fragment {
                 startActivity(intent);
             }
         });
+
+        setRealtimeUpdates();
 
         dayManager.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -212,6 +190,12 @@ public class HomeFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onStart() {
+        updateHomeScreen();
+        super.onStart();
+    }
+
     public void uploadDataOnline(String hName) {
         try {
             db.collection("users").document(userID).collection("habits").document(hName).set(habitsData.get(hName), SetOptions.merge());
@@ -248,14 +232,27 @@ public class HomeFragment extends Fragment {
 
     private void initializeNewDay() {
         String lastUpdate = sharedPref.getString("lastUpdateDate", todaysDate);
+        curState = sharedPref.getStringSet(activeWeekDay, new HashSet<String>());
         if (!lastUpdate.equals(todaysDate)) {
             Toast.makeText(getActivity(), "Updated", Toast.LENGTH_LONG).show();
+
             editor = sharedPref.edit();
             Set<String> state = new HashSet<String>();
             for (String hName : user.habitList) state.add("F"+hName);
 
+            try {
+                editor.remove("lastUpdateDate").apply();
+            } catch (Exception e) {
+                Log.d(TAG, "Last update date doesn't exist.");
+            }
+
+            try {
+                editor.remove(todaysWeekDay).apply();
+            } catch (Exception e) {
+                Log.d(TAG, "No data from the last day.");
+            }
+
             editor.putString("lastUpdateDate", todaysDate);
-            editor.remove(todaysWeekDay);
             editor.putStringSet(todaysWeekDay, state);
             editor.apply();
         }
@@ -279,6 +276,19 @@ public class HomeFragment extends Fragment {
                         }
                     }
                 });
+    }
+
+    private void addToSharedPref () {
+        editor = sharedPref.edit();
+        try {
+            editor.remove(activeWeekDay).apply();
+            editor.putStringSet(activeWeekDay, curState);
+            editor.apply();
+        } catch (Exception e) {
+            Log.d(TAG, "No data for last "+activeWeekDay);
+            editor.putStringSet(activeWeekDay, curState);
+            editor.apply();
+        }
     }
 
     private void arrangeButtonStyle(View btn, String state) {
@@ -330,9 +340,7 @@ public class HomeFragment extends Fragment {
         updateProgressBar();
         arrangeButtonStyle(v, state);
 
-        editor = sharedPref.edit();
-        editor.putStringSet(activeWeekDay, curState);
-        editor.apply();
+        addToSharedPref();
         setData.put(hName, state);
         try {
             db.collection("users").document(userID).collection("events").document(activeWeekDate).set(setData, SetOptions.merge());
@@ -365,6 +373,7 @@ public class HomeFragment extends Fragment {
                 arrangeButtonStyle(v, "skipped");
             }
             updateProgressBar();
+            addToSharedPref();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -497,6 +506,7 @@ public class HomeFragment extends Fragment {
         habitsDone = 0;
         toDo = new HashSet<>();
 
+        progressText.append("\nCHS: "+curState.toString());
         if (curState.isEmpty()) {
             for (final String hName : user.habitList)
                 curState.add("F"+hName);
@@ -506,10 +516,12 @@ public class HomeFragment extends Fragment {
             final String state;
             if (curState.contains("T"+hName))
                 state = "true";
-            else if (curState.contains("F"+hName))
-                state = "false";
-            else
+            else if (curState.contains("S"+hName))
                 state = "skipped";
+            else {
+                curState.add("F" + hName);
+                state = "false";
+            }
 
             final View btnView = habitHolder.getChildAt(2*cnt);
             btnView.setVisibility(View.VISIBLE);
@@ -596,20 +608,20 @@ public class HomeFragment extends Fragment {
 
     private void updateHomeScreen() {
         curState = sharedPref.getStringSet(activeWeekDay, new HashSet<String>());
+        progressText.append("\n"+curState.toString());
         int cnt = 0;
         for (final String hName : user.habitList) {
             final String state;
             if (curState.contains("T"+hName))
                 state = "true";
-            else if (curState.contains("F"+hName))
-                state = "false";
-            else {
-                curState.add("S"+hName);
+            else if (curState.contains("S"+hName))
                 state = "skipped";
+            else {
+                curState.add("F"+hName);
+                state = "false";
             }
 
             final View btnView = habitHolder.getChildAt(2*cnt);
-
             arrangeButtonStyle(btnView, state);
 
             cnt++;

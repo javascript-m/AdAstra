@@ -2,7 +2,6 @@ package com.ad_astra.maja.adastra;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -11,17 +10,16 @@ import android.graphics.drawable.LayerDrawable;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.Layout;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.SeekBar;
-import android.widget.Toast;
 
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -30,7 +28,9 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -42,14 +42,12 @@ import java.util.Objects;
 
 import static android.provider.AlarmClock.EXTRA_MESSAGE;
 
-/* Unutar validate inputs (update)
-GOAL TREBA ISCITAVAT PROGRESS BAR
-Mozes obrisat onaj dolje add success listener
-treba na UI dodat hReplacement i dodat ChooseHabit actitvity sa intentom ispred
+/* ChooseHabit actitvity sa intentom ispred
 * */
 
 public class AddHabit extends AppCompatActivity {
 
+    private final String TAG = "ADD HABIT";
     private static final int ADD_IMAGE = 125;
 
     ImageView hImg;
@@ -62,6 +60,7 @@ public class AddHabit extends AppCompatActivity {
 
     User user;
     String userID;
+    HabitInfo EhabitInfo;
 
     Context context;
     FirebaseAuth mAuth;
@@ -70,9 +69,6 @@ public class AddHabit extends AppCompatActivity {
     StorageReference storageReference;
     Uri uriDownload;
     Uri uriHabitIcon;
-
-    SharedPreferences sharedPref;
-    SharedPreferences.Editor editor;
 
 
     @Override
@@ -87,22 +83,17 @@ public class AddHabit extends AppCompatActivity {
         storageReference = storage.getReference();
 
         context = (Context) getApplicationContext();
-        sharedPref = context.getSharedPreferences(userID, Context.MODE_PRIVATE);
-        editor = sharedPref.edit();
 
         hImg = (ImageView)findViewById(R.id.AAH_img);
         hName = (EditText)findViewById(R.id.AAH_name);
         hGoal = (SeekBar)findViewById(R.id.AAH_goal);
         hDesc = (EditText)findViewById(R.id.AAH_desc);
         hTrigger = (EditText)findViewById(R.id.AAH_trigger);
-        //hReplacement = (EditText)findViewById(R.id.AAH_replacement);
+        hReplacement = (EditText)findViewById(R.id.AAH_rep);
 
         // Get message if turned to Edit Habit Info mode
         activityMode = getIntent().getStringExtra(EXTRA_MESSAGE);
-        if (!activityMode.equals("add habit")) {
-            hName.setEnabled(false);
-            loadHabitData();
-        }
+        setRealtimeUpdates();
     }
 
     @Override
@@ -113,11 +104,12 @@ public class AddHabit extends AppCompatActivity {
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.AAH_submit:
-                if (!validateInputs()) return;
-                if (activityMode.equals("add habit")) {
-                    submitAddChanges();
-                } else {
-                    submitEditChanges();
+                if (validateInputs()) {
+                    if (activityMode.equals("add habit")) {
+                        submitAddChanges();
+                    } else {
+                        submitEditChanges();
+                    }
                 }
                 finish();
                 startActivity(new Intent(AddHabit.this, HomeScreen.class));
@@ -126,6 +118,27 @@ public class AddHabit extends AppCompatActivity {
                 chooseImage();
                 break;
         }
+    }
+
+    public void setRealtimeUpdates() {
+        db.collection("users").document(userID)
+                .addSnapshotListener(new EventListener<DocumentSnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException e) {
+                        if (e != null) {
+                            return;
+                        }
+                        if (snapshot != null && snapshot.exists()) {
+                            user = snapshot.toObject(User.class);
+                            if (user != null) {
+                                if (!activityMode.equals("add habit")) {
+                                    hName.setEnabled(false);
+                                    loadHabitData();
+                                }
+                            }
+                        }
+                    }
+                });
     }
 
     //Intent that opens image chooser
@@ -190,28 +203,34 @@ public class AddHabit extends AppCompatActivity {
     }
 
     private boolean validateInputs() {
-        name = hName.getText().toString().trim();
+        name = hName.getText().toString().trim().toLowerCase();
         desc = hDesc.getText().toString().trim();
         trigger = hTrigger.getText().toString().trim();
-        replacement = "replacement";
-        goal = 2;
-        //Get GOAL and REPLACEMENT VALUE
-
-        //KAD SPREMAS SVE TO LOWERCASE I STIRP(TRIM)
+        replacement = hReplacement.getText().toString().trim();
+        goal = hGoal.getProgress();
 
         if (name.isEmpty()) {
             hName.setError("Name is required.");
             hName.requestFocus();
             return false;
         }
-        if (user.habitList.contains(name)) {
+        if (desc.isEmpty()) {
+            hDesc.setError("Description is required.");
+            hDesc.requestFocus();
+            return false;
+        }
+        if (trigger.isEmpty()) {
+            hTrigger.setError("Trigger is required.");
+            hTrigger.requestFocus();
+            return false;
+        }
+        if (activityMode.equals("add habit") && user.habitList.contains(name)) {
             hName.setError("This habit already exists");
             hName.requestFocus();
             return false;
         }
-        if (uriDownload == null) {
-            uriDownload = Uri.parse("textImage");
-            return false;
+        if (!activityMode.equals("add habit") && uriDownload == null) {
+            uriDownload = Uri.parse(EhabitInfo.imgUriS);
         }
         return true;
     }
@@ -244,15 +263,15 @@ public class AddHabit extends AppCompatActivity {
                 .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                     @Override
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        HabitInfo habitInfo = documentSnapshot.toObject(HabitInfo.class);
-                        hName.setText(habitInfo.name.toUpperCase());
-                        hGoal.setProgress(habitInfo.goal);
-                        hDesc.setText(habitInfo.desc);
-                        hTrigger.setText(habitInfo.trigger);
-                        //hReplacement.setText(habitInfo.replacement);
+                        EhabitInfo = documentSnapshot.toObject(HabitInfo.class);
+                        hName.setText(EhabitInfo.name.toUpperCase());
+                        hGoal.setProgress(EhabitInfo.goal);
+                        hDesc.setText(EhabitInfo.desc);
+                        hTrigger.setText(EhabitInfo.trigger);
+                        hReplacement.setText(EhabitInfo.replacement);
 
-                        if (!habitInfo.imgUriS.isEmpty() && !habitInfo.imgUriS.equals("textImage")) {
-                            StorageReference httpsReference = storage.getReferenceFromUrl(habitInfo.imgUriS);
+                        if (!EhabitInfo.imgUriS.isEmpty() && !EhabitInfo.imgUriS.equals("textImage")) {
+                            StorageReference httpsReference = storage.getReferenceFromUrl(EhabitInfo.imgUriS);
                             final long ONE_MEGABYTE = 1024 * 1024;
                             httpsReference.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
                                 @Override
@@ -265,12 +284,12 @@ public class AddHabit extends AppCompatActivity {
                             }).addOnFailureListener(new OnFailureListener() {
                                 @Override
                                 public void onFailure(@NonNull Exception exception) {
-                                    Log.d("ADD HABIT", "Error loading habit icon.");
+                                    Log.d(TAG, "Error loading habit icon.");
                                 }
                             });
                         } else {
                             TextDrawable textDrawable = new TextDrawable(AddHabit.this);
-                            textDrawable.addCustomStyle(habitInfo.name);
+                            textDrawable.addCustomStyle(EhabitInfo.name);
                             LayerDrawable layerList = circleBtn(textDrawable, true);
                             hImg.setBackground(layerList);
                         }
@@ -279,6 +298,12 @@ public class AddHabit extends AppCompatActivity {
     }
 
     private void submitEditChanges() {
-        //U slucaju dodavanje slike promijeni url
+        try {
+            final HabitInfo habitInfo = new HabitInfo(context, name, desc, goal, trigger, replacement, EhabitInfo.startDay, uriDownload.toString());
+            db.collection("users").document(userID).collection("habits").document(name).set(habitInfo);
+        } catch (Exception e) {
+            Log.d(TAG, e.toString());
+        }
+
     }
 }
