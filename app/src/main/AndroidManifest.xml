@@ -21,7 +21,6 @@
         </activity>
         <activity android:name=".SignUp" />
         <activity android:name=".MyProfile" />
-        <activity android:name=".EditUserInfo" />
         <activity android:name=".AddHabit" />
         <activity android:name=".HomeScreen" />
         <activity android:name=".ChooseHabit" />

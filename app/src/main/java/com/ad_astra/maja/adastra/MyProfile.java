@@ -2,12 +2,16 @@ package com.ad_astra.maja.adastra;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -44,16 +48,17 @@ import java.io.IOException;
 public class MyProfile extends AppCompatActivity {
 
     private static final int CHOOSE_IMAGE = 127;
+    private final String TAG = "MY PROFILE";
 
     ImageView profilePic;
-    EditText usnameTxt;
-    TextView emailVer;
-    TextView fName, lName, bDate;
+    TextView usnameTxt;
+    //TextView emailVer;
 
     Uri uriProfilePic;
     Uri downloadUrl;
     UploadTask uploadTask;
 
+    String userID;
     FirebaseAuth mAuth;
     FirebaseStorage storage;
     StorageReference storageReference;
@@ -66,47 +71,29 @@ public class MyProfile extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.MP_toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         mAuth = FirebaseAuth.getInstance();
+        userID = mAuth.getCurrentUser().getUid();
         storage = FirebaseStorage.getInstance();
         storageReference = storage.getReference();
         db = FirebaseFirestore.getInstance();
 
         profilePic = (ImageView)findViewById(R.id.MP_profilePic);
-        usnameTxt = (EditText)findViewById(R.id.MP_username);
-        emailVer = (TextView)findViewById(R.id.MP_emailVerified);
-        fName = (TextView)findViewById(R.id.MP_fName);
-        lName = (TextView)findViewById(R.id.MP_lName);
-        bDate = (TextView)findViewById(R.id.MP_bDate);
+        usnameTxt = (TextView)findViewById(R.id.MP_username);
+        //emailVer = (TextView)findViewById(R.id.MP_emailVerified);
 
         loadUserInformation();
     }
 
+
     @Override
     protected void onStart() {
         super.onStart();
-
         if (mAuth.getCurrentUser() == null) {
             finish();
             startActivity(new Intent(MyProfile.this, MainActivity.class));
         }
-
-        //Fill in user info if available
-        db.collection("users").document(mAuth.getCurrentUser().getUid())
-                .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot document = task.getResult();
-                            if (document.exists()) {
-                                User user = document.toObject(User.class);
-                                if (user.fName != null) fName.setText(user.fName);
-                                if (user.lName != null) lName.setText(user.lName);
-                                if (user.bDate != null) bDate.setText(user.bDate);
-                            }
-                        }
-                    }
-                });
     }
 
     public void onClick(View v) {
@@ -114,12 +101,9 @@ public class MyProfile extends AppCompatActivity {
             case R.id.MP_profilePic:
                 chooseImage();
                 break;
-            case R.id.MP_submitPPBtn:
-                submitUserInfo();
-                break;
-            case R.id.MP_editInfoBtn:
+            case R.id.MP_back:
                 finish();
-                startActivity(new Intent(MyProfile.this, EditUserInfo.class));
+                startActivity(new Intent(MyProfile.this, HomeScreen.class));
                 break;
         }
     }
@@ -152,13 +136,14 @@ public class MyProfile extends AppCompatActivity {
 
     private void uploadImgToFirebaseStorage() {
         if (uriProfilePic != null) {
-            final StorageReference refProfilePic = storageReference.child("profile_pics/"+System.currentTimeMillis()+".jpg");
+            final StorageReference refProfilePic = storageReference.child(userID+"/profile_pic.jpg");
             uploadTask = refProfilePic.putFile(uriProfilePic);
 
             Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
                 @Override
                 public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
                     if (!task.isSuccessful()) {
+                        Toast.makeText(MyProfile.this, task.getException().toString(), Toast.LENGTH_SHORT).show();
                         throw task.getException();
                     }
                     // Continue with the task to get the download URL
@@ -169,9 +154,9 @@ public class MyProfile extends AppCompatActivity {
                 public void onComplete(@NonNull Task<Uri> task) {
                     if (task.isSuccessful()) {
                         downloadUrl = task.getResult();
-                        Toast.makeText(MyProfile.this, downloadUrl.toString(), Toast.LENGTH_SHORT).show();
+                        submitUserInfo();
                     } else {
-                        Toast.makeText(MyProfile.this, "Upload failed", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "Error getting download url");
                     }
                 }
             });
@@ -181,17 +166,8 @@ public class MyProfile extends AppCompatActivity {
     private void submitUserInfo() {
         FirebaseUser user = mAuth.getCurrentUser();
 
-        String displayName = usnameTxt.getText().toString();
-
-        if (displayName.isEmpty()) {
-            usnameTxt.setError("Name required");
-            usnameTxt.requestFocus();
-            return;
-        }
-
         if(user != null && downloadUrl != null) {
             UserProfileChangeRequest profile = new UserProfileChangeRequest.Builder()
-                    .setDisplayName(displayName)
                     .setPhotoUri(downloadUrl)
                     .build();
             user.updateProfile(profile).addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -199,15 +175,22 @@ public class MyProfile extends AppCompatActivity {
                 public void onComplete(@NonNull Task<Void> task) {
                     if (task.isSuccessful()) {
                         Toast.makeText(MyProfile.this, "Profile updated", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(MyProfile.this, "UPDATE FAILED", Toast.LENGTH_SHORT).show();
                     }
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Toast.makeText(MyProfile.this, e.toString(), Toast.LENGTH_SHORT).show();
                 }
             });
         }
     }
 
+
     //For glide -> image upload
-    RequestOptions glideOptions = new RequestOptions()
-            .centerCrop();
+    RequestOptions glideOptions = new RequestOptions().centerCrop();
 
     private void loadUserInformation() {
         final FirebaseUser user = mAuth.getCurrentUser();
@@ -224,7 +207,8 @@ public class MyProfile extends AppCompatActivity {
                 usnameTxt.setText(user.getDisplayName());
             }
 
-            if (user.isEmailVerified()) {
+            //U buducnosti osposobit
+            /*if (user.isEmailVerified()) {
                 emailVer.setText("");
             } else {
                 emailVer.setText(R.string.emailVerification);
@@ -242,7 +226,7 @@ public class MyProfile extends AppCompatActivity {
                         startActivity(new Intent(MyProfile.this, MainActivity.class));
                     }
                 });
-            }
+            }*/
         }
     }
 
@@ -254,7 +238,9 @@ public class MyProfile extends AppCompatActivity {
             uriProfilePic = data.getData();
             try {
                 Bitmap bmp = MediaStore.Images.Media.getBitmap(getContentResolver(), uriProfilePic);
-                profilePic.setImageBitmap(bmp);
+                Drawable profileDrawable = new BitmapDrawable(getResources(), bmp);
+
+                profilePic.setBackground(profileDrawable);
                 uploadImgToFirebaseStorage();
             } catch (IOException e) {
                 e.printStackTrace();

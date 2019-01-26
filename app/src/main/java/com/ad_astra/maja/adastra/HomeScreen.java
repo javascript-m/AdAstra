@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -55,6 +56,14 @@ public class HomeScreen extends AppCompatActivity {
         adapter = new FragmentCollectionAdapter(getSupportFragmentManager());
         viewPager.setAdapter(adapter);
         viewPager.setCurrentItem(1);
+    }
+
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.HS_myProfileBtn:
+                startActivity(new Intent(HomeScreen.this, MyProfile.class));
+                break;
+        }
     }
 
     @Override
