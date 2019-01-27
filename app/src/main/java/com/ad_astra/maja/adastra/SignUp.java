@@ -10,12 +10,17 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 /***
  * unutar registerUser dodati novi dokument za usera u collection Users
@@ -23,8 +28,9 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class SignUp extends AppCompatActivity {
 
-    EditText emailIn, passIn;
+    EditText userIn, emailIn, passIn;
     private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +38,9 @@ public class SignUp extends AppCompatActivity {
         setContentView(R.layout.activity_sign_up);
 
         mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
+        userIn = (EditText) findViewById(R.id.SU_username);
         emailIn = (EditText)findViewById(R.id.SU_email);
         passIn = (EditText) findViewById(R.id.SU_password);
     }
@@ -46,10 +54,16 @@ public class SignUp extends AppCompatActivity {
     }
 
     private void registerUser() {
+        final String username = emailIn.getText().toString().trim();
         String email = emailIn.getText().toString().trim();
         String pass = passIn.getText().toString().trim();
 
         //User input validation
+        if (username.isEmpty()) {
+            userIn.setError("Username is required");
+            userIn.requestFocus();
+            return;
+        }
         if (email.isEmpty()) {
             emailIn.setError("Email is required.");
             emailIn.requestFocus();
@@ -71,12 +85,26 @@ public class SignUp extends AppCompatActivity {
             return;
         }
 
+        RequestOptions glideOptions = new RequestOptions().centerCrop();
+
         mAuth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
                     finish();
                     FirebaseUser user = mAuth.getCurrentUser();
+
+                    UserProfileChangeRequest profile = new UserProfileChangeRequest.Builder()
+                            .setDisplayName(username)
+                            .build();
+
+                    try {
+                        user.updateProfile(profile);
+                        User dbUser = new User(0, 0, 0);
+                        db.collection("users").document(user.getUid()).set(dbUser);
+                    } catch (Exception e) {
+                        Toast.makeText(SignUp.this, e.toString(), Toast.LENGTH_SHORT).show();
+                    }
 
                     Intent intent = new Intent(SignUp.this, MyProfile.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); //In case user presses 'back'

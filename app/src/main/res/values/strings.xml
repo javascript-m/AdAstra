@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Ad Astra</string>
+    <string name="app_name">AdAstra</string>
 
     <string name="emailVerification">Email is not verified. (Click here to verify)</string>
     <string name="switch_LItoSU"> <u>Don\'t have an account? Sign Up.</u> </string>

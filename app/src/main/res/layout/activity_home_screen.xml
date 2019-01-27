@@ -15,18 +15,11 @@
         android:minHeight="?attr/actionBarSize"
         android:background="@drawable/purple_toolbar">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <ImageView
+            android:layout_width="135dp"
+            android:layout_height="40dp"
             android:layout_gravity="center"
-            android:fontFamily="serif"
-            android:text="Ad Astra"
-            android:textColor="@android:color/white"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            app:fontFamily="sans-serif"
-            tools:layout_editor_absoluteX="157dp"
-            tools:layout_editor_absoluteY="16dp" />
+            android:background="@mipmap/app_toolbar_headline"/>
 
         <ImageButton
             android:id="@+id/HS_myProfileBtn"
