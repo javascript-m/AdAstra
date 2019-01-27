@@ -21,16 +21,20 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
@@ -69,11 +73,12 @@ public class HomeFragment extends Fragment {
     String activeWeekDay; //Date I'm currently modifying
     String todaysWeekDay;
     ArrayList<String> weekDays = new ArrayList<>();
+    String lvl, exp;
 
-    TextView progressText;
+    TextView progressText, lvlTxt, expTxt;
+    ImageView profilePic;
     ProgressBar progressBar;
-    LinearLayout habitHolder;
-    LinearLayout progressHolder;
+    LinearLayout habitHolder, progressHolder;
     Button addHabitBtn;
     TabLayout dayManager;
 
@@ -112,6 +117,9 @@ public class HomeFragment extends Fragment {
         todaysWeekDay = getWeekDay(TWD);
         activeWeekDay = todaysWeekDay;
         final Calendar cal = Calendar.getInstance();
+        cal.setTime(cDay);
+        cal.add(Calendar.DATE, -(getDayIndex(todaysWeekDay)-getDayIndex(activeWeekDay)));
+        activeWeekDate = df.format(cal.getTime());
 
         //Get all necessary views
         progressBar = (ProgressBar) homeFragment.findViewById(R.id.HF_circBar);
@@ -120,6 +128,9 @@ public class HomeFragment extends Fragment {
         addHabitBtn = (Button) homeFragment.findViewById(R.id.HF_add);
         progressText = (TextView) homeFragment.findViewById(R.id.HF_progressTxt);
         dayManager = (TabLayout) homeFragment.findViewById(R.id.HF_week);
+        lvlTxt = (TextView) homeFragment.findViewById(R.id.HF_lvl);
+        expTxt = (TextView) homeFragment.findViewById(R.id.HF_exp);
+        profilePic = (ImageView) homeFragment.findViewById(R.id.HF_profilePic);
 
         //Initialize Authentication and Firestore
         user = new User();
@@ -129,13 +140,11 @@ public class HomeFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
         userID = mAuth.getCurrentUser().getUid();
 
-
         //Shared Preferences: used for accessing today's habit data quickly
         context = getContext();
         addHabit = new AddHabit();
         sharedPref = context.getSharedPreferences(userID, Context.MODE_PRIVATE);
         curState = sharedPref.getStringSet(activeWeekDay, new HashSet<String>());
-        progressText.setText("OC: "+curState);
 
         addHabitBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -147,6 +156,9 @@ public class HomeFragment extends Fragment {
             }
         });
 
+        /*editor = sharedPref.edit();
+        editor.clear().apply();*/
+
         setRealtimeUpdates();
 
         dayManager.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -156,6 +168,9 @@ public class HomeFragment extends Fragment {
                     Objects.requireNonNull(dayManager.getTabAt(getDayIndex(todaysWeekDay))).select();
                     return;
                 }
+
+                //For old active week day
+                uploadDataOnline(activeWeekDay, activeWeekDate);
 
                 activeWeekDay = weekDays.get(tab.getPosition());
                 cal.setTime(cDay);
@@ -183,11 +198,21 @@ public class HomeFragment extends Fragment {
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        uploadDataOnline(activeWeekDay, activeWeekDate);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        uploadDataOnline(activeWeekDay, activeWeekDate);
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
-        for (Map.Entry<String, HabitInfo> hp : habitsData.entrySet()) {
-            uploadDataOnline(hp.getKey());
-        }
+        uploadDataOnline(activeWeekDay, activeWeekDate);
     }
 
     @Override
@@ -196,11 +221,22 @@ public class HomeFragment extends Fragment {
         super.onStart();
     }
 
-    public void uploadDataOnline(String hName) {
-        try {
-            db.collection("users").document(userID).collection("habits").document(hName).set(habitsData.get(hName), SetOptions.merge());
-        } catch (Exception e) {
-            Log.d(TAG, "Failed to upload data online");
+    public void uploadDataOnline(String AWDY, String AWDT) {
+        //Events - todaysExp
+        int tExp = (int) sharedPref.getInt(AWDY+"EXP", 0);
+        Map <String, Object> setData = new HashMap<>();
+        setData.put("EXP", tExp);
+        db.collection("users").document(userID).collection("events").document(AWDT).set(setData,SetOptions.merge());
+
+        //Update habits data
+        for (String hName : user.habitList) {
+            try {
+                int done = sharedPref.getInt(hName+"D", 0);
+                habitsData.get(hName).done = done;
+                db.collection("users").document(userID).collection("habits").document(hName).set(habitsData.get(hName), SetOptions.merge());
+            } catch (Exception e) {
+                Log.d(TAG, "Failed to upload data online");
+            }
         }
     }
 
@@ -259,18 +295,32 @@ public class HomeFragment extends Fragment {
         getHabitData();
     }
 
+    RequestOptions glideOptions = new RequestOptions().centerCrop();
+
     //Real-time updates listener (checks if database state has changed)
     public void setRealtimeUpdates() {
+        final FirebaseUser fbUser = mAuth.getCurrentUser();
+        if (fbUser != null) {
+            if (fbUser.getPhotoUrl() != null) {
+                Glide.with(this)
+                        .load(fbUser.getPhotoUrl())
+                        .apply(glideOptions)
+                        .into(profilePic);
+            }
+        }
+
         db.collection("users").document(userID)
-                .addSnapshotListener(new EventListener<DocumentSnapshot>() {
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
-                    public void onEvent(@Nullable DocumentSnapshot snapshot, @Nullable FirebaseFirestoreException e) {
-                        if (e != null) {
-                            return;
-                        }
-                        if (snapshot != null && snapshot.exists()) {
-                            user = snapshot.toObject(User.class);
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            user = task.getResult().toObject(User.class);
                             if (user != null) {
+                                lvl = "Lvl. #" + Integer.toString(user.lvl);
+                                exp = Integer.toString(user.exp) + "/" + Integer.toString(user.lvl * 50);
+                                lvlTxt.setText(lvl);
+                                expTxt.setText(exp);
                                 initializeNewDay();
                             }
                         }
@@ -278,7 +328,7 @@ public class HomeFragment extends Fragment {
                 });
     }
 
-    private void addToSharedPref () {
+    private void addToSharedPref (String hName, boolean stateChanged, int done) {
         editor = sharedPref.edit();
         try {
             editor.remove(activeWeekDay).apply();
@@ -288,6 +338,14 @@ public class HomeFragment extends Fragment {
             Log.d(TAG, "No data for last "+activeWeekDay);
             editor.putStringSet(activeWeekDay, curState);
             editor.apply();
+        }
+        if (stateChanged) {
+            try {
+                editor.remove(hName+"D").apply();
+                editor.putInt(hName+"D", done).apply();
+            } catch (Exception e) {
+                editor.putInt(hName+"D", 0).apply();
+            }
         }
     }
 
@@ -315,6 +373,47 @@ public class HomeFragment extends Fragment {
         btn.setBackground(layerList);
     }
 
+    private void manageExp(String state, String hName) {
+        HabitInfo hInfo = habitsData.get(hName);
+        final int newExp;
+        if (state.equals("true")) {
+            newExp = 20;
+        } else {
+            newExp = -20;
+        }
+        user.exp += newExp;
+
+        if (user.exp >= user.lvl * 50) {
+            user.exp -= user.lvl * 50;
+            user.lvl++;
+        }
+        else if (user.exp < 0) {
+            user.lvl--;
+            user.exp = user.lvl * 50 + user.exp;
+        }
+        lvl = "Lvl. #" + Integer.toString(user.lvl);
+        exp = Integer.toString(user.exp) + "/" + Integer.toString(user.lvl * 50);
+        lvlTxt.setText(lvl);
+        expTxt.setText(exp);
+
+        Map<String, Object> setData = new HashMap<>();
+        setData.put("exp", user.exp);
+        setData.put("lvl", user.lvl);
+
+        int tExp = (int) sharedPref.getInt(activeWeekDay+"EXP", 0);
+        tExp += newExp;
+
+        editor = sharedPref.edit();
+        editor.remove(activeWeekDay+"EXP").apply();
+        editor.putInt(activeWeekDay+"EXP", tExp).apply();
+
+        try {
+            db.collection("users").document(userID).set(setData, SetOptions.merge());
+        } catch (Exception e) {
+            Toast.makeText(getContext(), e.toString(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void hButtonChangeState(View v) {
         String hName = (String) v.getTag();
         Map<String, Object> setData = new HashMap<>();
@@ -335,12 +434,14 @@ public class HomeFragment extends Fragment {
             hInfo.done++;
             if (toDo.contains(hName)) habitsDone++;
         }
+        //Add/remove points
+        manageExp(state, hName);
+        addToSharedPref(hName, true, hInfo.done);
 
         updateUpperText(hName, habitHolder.indexOfChild(v));
         updateProgressBar();
         arrangeButtonStyle(v, state);
 
-        addToSharedPref();
         setData.put(hName, state);
         try {
             db.collection("users").document(userID).collection("events").document(activeWeekDate).set(setData, SetOptions.merge());
@@ -353,7 +454,6 @@ public class HomeFragment extends Fragment {
         try {
             String hName = v.getTag().toString();
             HabitInfo hInfo = habitsData.get(hName);
-            uploadDataOnline(hInfo.name);
 
             habitsData.put(hName, hInfo);
 
@@ -372,8 +472,8 @@ public class HomeFragment extends Fragment {
 
                 arrangeButtonStyle(v, "skipped");
             }
+            addToSharedPref(hName, false, 0);
             updateProgressBar();
-            addToSharedPref();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -420,6 +520,7 @@ public class HomeFragment extends Fragment {
                                             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                                                 if (task.isSuccessful()) {
                                                     int tasksDone = 0;
+
                                                     for (QueryDocumentSnapshot document : task.getResult()) {
                                                         try {
                                                             if (document.get(hInfo.name).equals("true")) {
@@ -468,23 +569,19 @@ public class HomeFragment extends Fragment {
     }
 
     private void updateUpperText(String hName, int pos) {
-        HabitInfo tmp = habitsData.get(hName);
-        if (tmp != null) {
-            final TextView txt = (TextView) progressHolder.getChildAt(pos);
-            final String weekProgress = tmp.done+"/"+HabitPlan.plan[tmp.goal-1][tmp.week];
-            txt.setText(weekProgress);
-            txt.setTag(hName+"txt");
-
-            txt.setVisibility(View.VISIBLE);
-            progressHolder.getChildAt(pos+1).setVisibility(View.VISIBLE);
-        };
-        uploadDataOnline(hName);
+        int hDone = sharedPref.getInt(hName+"D", 0);
+        final TextView txt = (TextView) progressHolder.getChildAt(pos);
+        final String weekProgress = hDone+"/"+HabitPlan.plan[habitsData.get(hName).goal-1][habitsData.get(hName).week];
+        txt.setText(weekProgress);
+        progressHolder.getChildAt(pos+1).setVisibility(View.VISIBLE);
     }
 
     private void updateProgressBar() {
         int value = 0;
         if (toDo.size() != 0) value = habitsDone * 100/toDo.size();
-        if (toDo.size() == habitsDone || value > 100) value = 100;
+
+        if(user.habitList.isEmpty()) value = 0;
+        else if (toDo.size() == habitsDone || value > 100) value = 100;
         else if (habitsDone == 0 || value < 0) value = 0;
 
         String valueTxt = value + "%";
@@ -507,6 +604,7 @@ public class HomeFragment extends Fragment {
         toDo = new HashSet<>();
 
         progressText.append("\nCHS: "+curState.toString());
+
         if (curState.isEmpty()) {
             for (final String hName : user.habitList)
                 curState.add("F"+hName);
@@ -623,7 +721,6 @@ public class HomeFragment extends Fragment {
 
             final View btnView = habitHolder.getChildAt(2*cnt);
             arrangeButtonStyle(btnView, state);
-
             cnt++;
         }
         updateProgressBar();

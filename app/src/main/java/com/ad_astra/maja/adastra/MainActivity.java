@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
                     finish();
                     FirebaseUser user = mAuth.getCurrentUser();
 
-                    Intent intent = new Intent(MainActivity.this, MyProfile.class);
+                    Intent intent = new Intent(MainActivity.this, HomeScreen.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); //In case user presses 'back'
                     startActivity(intent);
                 } else {

@@ -54,7 +54,7 @@ public class SignUp extends AppCompatActivity {
     }
 
     private void registerUser() {
-        final String username = emailIn.getText().toString().trim();
+        final String username = userIn.getText().toString().trim();
         String email = emailIn.getText().toString().trim();
         String pass = passIn.getText().toString().trim();
 
@@ -85,30 +85,35 @@ public class SignUp extends AppCompatActivity {
             return;
         }
 
-        RequestOptions glideOptions = new RequestOptions().centerCrop();
-
         mAuth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
                     finish();
-                    FirebaseUser user = mAuth.getCurrentUser();
+                    final FirebaseUser user = mAuth.getCurrentUser();
 
                     UserProfileChangeRequest profile = new UserProfileChangeRequest.Builder()
                             .setDisplayName(username)
                             .build();
 
                     try {
-                        user.updateProfile(profile);
-                        User dbUser = new User(0, 0, 0);
-                        db.collection("users").document(user.getUid()).set(dbUser);
+                        user.updateProfile(profile).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    User dbUser = new User(0, 0, 0);
+                                    db.collection("users").document(user.getUid()).set(dbUser);
+                                    Intent intent = new Intent(SignUp.this, HomeScreen.class);
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); //In case user presses 'back'
+                                    startActivity(intent);
+                                }
+                            }
+                        });
                     } catch (Exception e) {
                         Toast.makeText(SignUp.this, e.toString(), Toast.LENGTH_SHORT).show();
                     }
 
-                    Intent intent = new Intent(SignUp.this, MyProfile.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); //In case user presses 'back'
-                    startActivity(intent);
+
                 } else {
                     if (task.getException() instanceof FirebaseAuthUserCollisionException) {
                         Toast.makeText(SignUp.this, "You are alreaddy registered", Toast.LENGTH_SHORT).show();
