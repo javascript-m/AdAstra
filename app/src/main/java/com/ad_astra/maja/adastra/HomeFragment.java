@@ -171,7 +171,6 @@ public class HomeFragment extends Fragment {
 
                 //For old active week day
                 uploadDataOnline(activeWeekDay, activeWeekDate);
-
                 activeWeekDay = weekDays.get(tab.getPosition());
                 cal.setTime(cDay);
                 cal.add(Calendar.DATE, -(getDayIndex(todaysWeekDay)-getDayIndex(activeWeekDay)));

@@ -197,7 +197,8 @@ public class AddHabit extends AppCompatActivity {
         date.set(Calendar.SECOND, 0);
         date.set(Calendar.MILLISECOND, 0);
 
-        date.add(Calendar.DAY_OF_MONTH, day);
+        //date.add(Calendar.DAY_OF_MONTH, day)
+        date.add(Calendar.DATE, day);
 
         return date.getTime().getTime()/1000;
     }
