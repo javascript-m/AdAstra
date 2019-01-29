@@ -6,4 +6,7 @@
     <string name="switch_SUtoLI"> <u>Already have an account? Log in.</u> </string>
     <string name="logInTitle">LOG IN</string>
     <string name="signUpTitle">SIGN UP</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

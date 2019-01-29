@@ -55,7 +55,7 @@ public class HomeScreen extends AppCompatActivity {
         viewPager = findViewById(R.id.HS_pager);
         adapter = new FragmentCollectionAdapter(getSupportFragmentManager());
         viewPager.setAdapter(adapter);
-        viewPager.setCurrentItem(0);
+        viewPager.setCurrentItem(2);
     }
 
     public void onClick(View v) {
