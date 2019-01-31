@@ -24,7 +24,8 @@
         <activity android:name=".AddHabit" />
         <activity android:name=".HomeScreen" />
         <activity android:name=".ChooseHabit" />
-        <activity android:name=".ExploreGroups"></activity>
+        <activity android:name=".ExploreGroups" />
+        <activity android:name=".GroupData"></activity>
     </application>
 
 </manifest>

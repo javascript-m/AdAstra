@@ -35,11 +35,14 @@ import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /*
 * Stavit progress bar da korisnici pricekaju upload slike (inace rijesit probleme sa učivatavnjem)
@@ -174,9 +177,10 @@ public class MyProfile extends AppCompatActivity {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     if (task.isSuccessful()) {
-                        Toast.makeText(MyProfile.this, "Profile updated", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "Profile updated");
+                        loadUserInformation();
                     } else {
-                        Toast.makeText(MyProfile.this, "UPDATE FAILED", Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "Update failed");
                     }
                 }
             }).addOnFailureListener(new OnFailureListener() {
@@ -185,6 +189,17 @@ public class MyProfile extends AppCompatActivity {
                     Toast.makeText(MyProfile.this, e.toString(), Toast.LENGTH_SHORT).show();
                 }
             });
+
+            Map<String, Object> setData = new HashMap<>();
+            setData.put("imgUrl", downloadUrl.toString());
+            db.collection("users").document(userID).set(setData, SetOptions.merge())
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            // TODO: ne moze se maknut dok nije updatean profil
+                            Toast.makeText(MyProfile.this, "USPJEH", Toast.LENGTH_SHORT).show();
+                        }
+                    });
         }
     }
 

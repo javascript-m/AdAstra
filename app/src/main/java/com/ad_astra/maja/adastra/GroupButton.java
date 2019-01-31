@@ -1,9 +1,11 @@
 package com.ad_astra.maja.adastra;
 
 
+import android.content.Intent;
 import android.media.Image;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,6 +25,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
 
+import static android.provider.AlarmClock.EXTRA_MESSAGE;
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -41,6 +45,9 @@ public class GroupButton extends Fragment {
     private TextView adminText;
     private ImageView img;
     private Button joinBtn;
+    private ConstraintLayout body;
+
+    private HomeScreen homeScreen;
 
     public static GroupButton newInstance(String sName, String sAdmin, String sUrl, String gID, boolean bJoin) {
         Bundle bundle = new Bundle();
@@ -74,11 +81,13 @@ public class GroupButton extends Fragment {
         mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
         userID = user.getUid();
+        homeScreen = new HomeScreen();
 
         nameText = (TextView) view.findViewById(R.id.FGB_title);
         adminText = (TextView) view.findViewById(R.id.FGB_desc);
         img = (ImageView) view.findViewById(R.id.FGB_img);
         joinBtn = (Button) view.findViewById(R.id.FGB_join);
+        body = (ConstraintLayout) view.findViewById(R.id.FGB_layout);
 
         readBundle(getArguments());
 
@@ -88,9 +97,8 @@ public class GroupButton extends Fragment {
         if (admin != null && !admin.isEmpty())
             adminText.setText("Created by " + admin);
 
-        if (url != null && !url.isEmpty()) {
-            //ADD IMAGE TO IMAGEVIEW
-        }
+        if (url != null && !url.isEmpty())
+            homeScreen.urlImgToHolder(img, url, getResources());
 
         if (join) {
             joinBtn.setVisibility(View.VISIBLE);
@@ -98,7 +106,7 @@ public class GroupButton extends Fragment {
             joinBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Map<String, Object> setData = new HashMap<>();
+                    final Map<String, Object> setData = new HashMap<>();
                     setData.put("name", user.getDisplayName());
                     db.collection("groups").document(ID).collection("users").document(userID).set(setData)
                     .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -107,6 +115,9 @@ public class GroupButton extends Fragment {
                             if (task.isSuccessful()) {
                                 // TODO instead change button style to joined and a tick
                                 joinBtn.setVisibility(View.INVISIBLE);
+
+                                // Add to user-list of my groups
+                                db.collection("users").document(userID).collection("my_groups").document(ID).set(setData);
                             }
                         }
                     }).addOnFailureListener(new OnFailureListener() {
@@ -119,6 +130,16 @@ public class GroupButton extends Fragment {
                 }
             });
         }
+
+        body.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getContext(), GroupData.class);
+                String message = ID;
+                intent.putExtra(EXTRA_MESSAGE, message);
+                startActivity(intent);
+            }
+        });
 
         return view;
     }

@@ -3,12 +3,25 @@ package com.ad_astra.maja.adastra;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -18,12 +31,16 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -34,8 +51,15 @@ import java.util.Map;
 
 public class HomeScreen extends AppCompatActivity {
 
+    final private String TAG = "HOME SCREEN";
+
     private ViewPager viewPager;
     private FragmentCollectionAdapter adapter;
+
+    FirebaseStorage storage;
+    StorageReference storageReference;
+
+    //TODO: SVUGDJE JEDNOSTAVNO 'rounded bitmap drawable'
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,5 +107,27 @@ public class HomeScreen extends AppCompatActivity {
                 break;
         }
         return true;
+    }
+
+    public void urlImgToHolder(final View holder, String url, final Resources res) {
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+        StorageReference storageReference = storage.getReferenceFromUrl(url);
+
+        final long ONE_MEGABYTE = 1024 * 1024;
+        storageReference.getBytes(ONE_MEGABYTE)
+                .addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                    @Override
+                    public void onSuccess(byte[] bytes) {
+                        Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                        RoundedBitmapDrawable icon = RoundedBitmapDrawableFactory.create(res, bmp);
+                        icon.setCornerRadius(Math.max(bmp.getWidth(), bmp.getHeight()) / 2.0f);
+                        holder.setBackground(icon);
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                Log.d("POST FRAGMENT", "Error loading habit icon.");
+            }
+        });
     }
 }
