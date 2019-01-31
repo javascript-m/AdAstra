@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
+import android.media.Image;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -59,8 +60,7 @@ import java.util.Set;
 
 import static android.provider.AlarmClock.EXTRA_MESSAGE;
 
-/* Bodove dobivam svaki put kad nešto napravim!! i to npr 25*(a+b)
- * */
+//TODO: Poboljšat praćenje datuma / dana u tjednu
 
 public class HomeFragment extends Fragment {
 
@@ -95,6 +95,7 @@ public class HomeFragment extends Fragment {
 
     Context context;
     AddHabit addHabit;
+    HomeScreen homeScreen;
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
 
@@ -139,6 +140,7 @@ public class HomeFragment extends Fragment {
         storageReference = storage.getReference();
         db = FirebaseFirestore.getInstance();
         userID = mAuth.getCurrentUser().getUid();
+        homeScreen = new HomeScreen();
 
         //Shared Preferences: used for accessing today's habit data quickly
         context = getContext();
@@ -294,18 +296,12 @@ public class HomeFragment extends Fragment {
         getHabitData();
     }
 
-    RequestOptions glideOptions = new RequestOptions().centerCrop();
-
     //Real-time updates listener (checks if database state has changed)
     public void setRealtimeUpdates() {
         final FirebaseUser fbUser = mAuth.getCurrentUser();
         if (fbUser != null) {
-            if (fbUser.getPhotoUrl() != null) {
-                Glide.with(this)
-                        .load(fbUser.getPhotoUrl())
-                        .apply(glideOptions)
-                        .into(profilePic);
-            }
+            if (fbUser.getPhotoUrl() != null)
+                homeScreen.urlImgToHolder(profilePic, fbUser.getPhotoUrl().toString(), getResources());
         }
 
         db.collection("users").document(userID)

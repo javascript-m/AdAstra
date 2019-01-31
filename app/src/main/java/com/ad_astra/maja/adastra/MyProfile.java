@@ -44,10 +44,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-/*
-* Stavit progress bar da korisnici pricekaju upload slike (inace rijesit probleme sa učivatavnjem)
-* */
-
 public class MyProfile extends AppCompatActivity {
 
     private static final int CHOOSE_IMAGE = 127;
@@ -66,6 +62,7 @@ public class MyProfile extends AppCompatActivity {
     FirebaseStorage storage;
     StorageReference storageReference;
     FirebaseFirestore db;
+    HomeScreen homeScreen;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +78,7 @@ public class MyProfile extends AppCompatActivity {
         storage = FirebaseStorage.getInstance();
         storageReference = storage.getReference();
         db = FirebaseFirestore.getInstance();
+        homeScreen = new HomeScreen();
 
         profilePic = (ImageView)findViewById(R.id.MP_profilePic);
         usnameTxt = (TextView)findViewById(R.id.MP_username);
@@ -196,52 +194,25 @@ public class MyProfile extends AppCompatActivity {
                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
-                            // TODO: ne moze se maknut dok nije updatean profil
+                            // TODO: Stavit progress bar da korisnici pricekaju upload slike (inace rijesit probleme sa učivatavnjem)
+                            homeScreen.urlImgToHolder(profilePic, downloadUrl.toString(), getResources());
                             Toast.makeText(MyProfile.this, "USPJEH", Toast.LENGTH_SHORT).show();
                         }
                     });
         }
     }
 
-
-    //For glide -> image upload
-    RequestOptions glideOptions = new RequestOptions().centerCrop();
-
     private void loadUserInformation() {
         final FirebaseUser user = mAuth.getCurrentUser();
 
         if (user != null) {
             if (user.getPhotoUrl() != null) {
-                Glide.with(this)
-                        .load(user.getPhotoUrl())
-                        .apply(glideOptions)
-                        .into(profilePic);
+                homeScreen.urlImgToHolder(profilePic, user.getPhotoUrl().toString(), getResources());
             }
 
             if (user.getDisplayName() != null) {
                 usnameTxt.setText(user.getDisplayName());
             }
-
-            //U buducnosti osposobit
-            /*if (user.isEmailVerified()) {
-                emailVer.setText("");
-            } else {
-                emailVer.setText(R.string.emailVerification);
-                emailVer.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        user.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                Toast.makeText(MyProfile.this, "Verification email sent.", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                        FirebaseAuth.getInstance().signOut();
-                        finish();
-                        startActivity(new Intent(MyProfile.this, MainActivity.class));
-                    }
-                });
-            }*/
         }
     }
 
@@ -254,10 +225,9 @@ public class MyProfile extends AppCompatActivity {
             try {
                 Bitmap bmp = MediaStore.Images.Media.getBitmap(getContentResolver(), uriProfilePic);
                 Drawable profileDrawable = new BitmapDrawable(getResources(), bmp);
-
-                profilePic.setBackground(profileDrawable);
                 uploadImgToFirebaseStorage();
-            } catch (IOException e) {
+            } catch (Exception e) {
+                Toast.makeText(homeScreen, e.toString(), Toast.LENGTH_SHORT).show();
                 e.printStackTrace();
             }
         }

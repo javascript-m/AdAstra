@@ -8,11 +8,11 @@
 
     <ImageView
         android:id="@+id/HF_profilePic"
-        android:layout_width="44dp"
-        android:layout_height="52dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_marginEnd="16dp"
         android:layout_marginTop="16dp"
-        android:src="@android:drawable/ic_menu_camera"
+        android:background="@android:drawable/ic_menu_camera"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -39,8 +39,8 @@
     <ProgressBar
         android:id="@+id/HF_circBar"
         style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="336dp"
-        android:layout_height="300dp"
+        android:layout_width="350dp"
+        android:layout_height="350dp"
         android:layout_marginBottom="12dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
@@ -71,25 +71,23 @@
         android:id="@+id/HF_todoTitle"
         android:layout_width="68dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginStart="24dp"
+        android:layout_marginBottom="12dp"
+        android:layout_marginStart="32dp"
         android:text="TO DO"
         android:textSize="18sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/HF_scrollView"
         app:layout_constraintStart_toStartOf="parent" />
 
     <HorizontalScrollView
         android:id="@+id/HF_scrollView"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginLeft="24dp"
-        android:layout_marginRight="24dp"
-        android:layout_marginStart="24dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
         app:layout_constraintBottom_toTopOf="@+id/HF_week"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent">
 
         <LinearLayout
@@ -111,9 +109,9 @@
                     android:textSize="14sp" />
 
                 <TextView
-                    android:layout_width="18dp"
-                    android:text=""
-                    android:layout_height="match_parent" />
+                    android:layout_width="20dp"
+                    android:layout_height="match_parent"
+                    android:text="" />
 
                 <TextView
                     android:layout_width="70dp"
@@ -124,9 +122,9 @@
                     android:textSize="14sp" />
 
                 <TextView
-                    android:layout_width="18dp"
-                    android:text=""
-                    android:layout_height="match_parent" />
+                    android:layout_width="20dp"
+                    android:layout_height="match_parent"
+                    android:text="" />
 
                 <TextView
                     android:layout_width="70dp"
@@ -137,9 +135,9 @@
                     android:textSize="14sp" />
 
                 <TextView
-                    android:layout_width="18dp"
-                    android:text=""
-                    android:layout_height="match_parent" />
+                    android:layout_width="20dp"
+                    android:layout_height="match_parent"
+                    android:text="" />
 
                 <TextView
                     android:layout_width="70dp"
@@ -150,40 +148,40 @@
                     android:textSize="14sp" />
 
                 <TextView
-                    android:layout_width="18dp"
+                    android:layout_width="20dp"
+                    android:layout_height="match_parent"
                     android:text=""
-                    android:visibility="gone"
-                    android:layout_height="match_parent" />
+                    android:visibility="gone" />
 
                 <TextView
                     android:layout_width="70dp"
                     android:layout_height="wrap_content"
                     android:padding="5dp"
                     android:text=""
-                    android:visibility="gone"
                     android:textAlignment="center"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    android:visibility="gone" />
 
                 <TextView
-                    android:layout_width="18dp"
+                    android:layout_width="20dp"
+                    android:layout_height="match_parent"
                     android:text=""
-                    android:visibility="gone"
-                    android:layout_height="match_parent" />
+                    android:visibility="gone" />
 
                 <TextView
                     android:layout_width="70dp"
                     android:layout_height="wrap_content"
                     android:padding="5dp"
                     android:text=""
-                    android:visibility="gone"
                     android:textAlignment="center"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    android:visibility="gone" />
 
                 <TextView
-                    android:layout_width="18dp"
+                    android:layout_width="20dp"
+                    android:layout_height="match_parent"
                     android:text=""
-                    android:visibility="gone"
-                    android:layout_height="match_parent" />
+                    android:visibility="gone" />
 
             </LinearLayout>
 
@@ -196,74 +194,74 @@
                 android:paddingTop="5dp">
 
                 <Button
+                    style="?android:attr/borderlessButtonStyle"
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:background="@drawable/empty_habit_button"
-                    android:textSize="40sp"
-                    style="?android:attr/borderlessButtonStyle"/>
+                    android:textSize="40sp" />
 
                 <TextView
-                    android:layout_width="18dp"
+                    android:layout_width="20dp"
                     android:layout_height="match_parent" />
 
                 <Button
+                    style="?android:attr/borderlessButtonStyle"
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:background="@drawable/empty_habit_button"
-                    android:textSize="40sp"
-                    style="?android:attr/borderlessButtonStyle"/>
+                    android:textSize="40sp" />
 
                 <TextView
-                    android:layout_width="18dp"
+                    android:layout_width="20dp"
                     android:layout_height="match_parent" />
 
                 <Button
+                    style="?android:attr/borderlessButtonStyle"
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:background="@drawable/empty_habit_button"
-                    android:textSize="40sp"
-                    style="?android:attr/borderlessButtonStyle" />
+                    android:textSize="40sp" />
 
                 <TextView
-                    android:layout_width="18dp"
+                    android:layout_width="20dp"
                     android:layout_height="match_parent" />
 
                 <Button
+                    style="?android:attr/borderlessButtonStyle"
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:background="@drawable/empty_habit_button"
                     android:textSize="40sp"
-                    android:visibility="gone"
-                    style="?android:attr/borderlessButtonStyle" />
+                    android:visibility="gone" />
 
                 <TextView
-                    android:layout_width="18dp"
+                    android:layout_width="20dp"
                     android:layout_height="match_parent"
                     android:visibility="gone" />
 
                 <Button
+                    style="?android:attr/borderlessButtonStyle"
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:background="@drawable/empty_habit_button"
                     android:textSize="40sp"
-                    android:visibility="gone"
-                    style="?android:attr/borderlessButtonStyle" />
+                    android:visibility="gone" />
 
                 <TextView
-                    android:layout_width="18dp"
+                    android:layout_width="20dp"
                     android:layout_height="match_parent"
                     android:visibility="gone" />
 
                 <Button
+                    style="?android:attr/borderlessButtonStyle"
                     android:layout_width="70dp"
                     android:layout_height="70dp"
                     android:background="@drawable/empty_habit_button"
                     android:textSize="40sp"
-                    android:visibility="gone"
-                    style="?android:attr/borderlessButtonStyle" />
+                    android:visibility="gone" />
 
                 <TextView
-                    android:layout_width="18dp"
+                    android:layout_width="20dp"
                     android:layout_height="match_parent"
                     android:visibility="gone" />
 
@@ -288,10 +286,15 @@
         android:id="@+id/HF_week"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:background="@color/tabLyout"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
+        app:tabBackground="@drawable/tab_background"
+        app:tabIndicatorColor="@android:color/white"
+        app:tabSelectedTextColor="@android:color/white"
+        app:tabTextColor="@android:color/black">
 
         <android.support.design.widget.TabItem
             android:layout_width="wrap_content"

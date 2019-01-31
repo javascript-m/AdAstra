@@ -3,14 +3,13 @@ package com.ad_astra.maja.adastra;
 
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -21,16 +20,12 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
 import com.jjoe64.graphview.series.BarGraphSeries;
 import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Random;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -77,7 +72,20 @@ public class StatsFragment extends Fragment {
         endDay = (int) addHabit.getMidnight(0);
         startDay = (int) addHabit.getMidnight(-count);
 
-        graph = (GraphView) statsFragment.findViewById(R.id.graph);
+        graph = (GraphView) statsFragment.findViewById(R.id.SF_graph);
+
+        //TODO: ACTIVATE COE BELOW
+        /*
+        //get the spinner from the xml.
+        Spinner dropdown = statsFragment.findViewById(R.id.spinner1);
+        //create a list of items for the spinner.
+        String[] items = new String[]{"1", "2", "three"};
+        //create an adapter to describe how the items are displayed, adapters are used in several places in android.
+        //There are multiple variations of this, but this is the basic variant.
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items);
+        //set the spinners adapter to the previously created one.
+        dropdown.setAdapter(adapter);
+        */
 
         generateData();
         return statsFragment;

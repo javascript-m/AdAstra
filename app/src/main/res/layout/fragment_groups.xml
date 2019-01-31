@@ -8,11 +8,11 @@
 
     <ImageView
         android:id="@+id/GF_profilePic"
-        android:layout_width="44dp"
-        android:layout_height="52dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_marginEnd="16dp"
         android:layout_marginTop="16dp"
-        android:src="@android:drawable/ic_menu_camera"
+        android:background="@android:drawable/ic_menu_camera"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -43,8 +43,10 @@
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
-        android:text="My groups"
+        android:text="@string/GF_title"
+        android:textAllCaps="false"
         android:textSize="24sp"
+        android:textStyle="bold"
         app:layout_constraintEnd_toStartOf="@+id/GF_lvl"
         app:layout_constraintHorizontal_bias="0.285"
         app:layout_constraintStart_toStartOf="parent"

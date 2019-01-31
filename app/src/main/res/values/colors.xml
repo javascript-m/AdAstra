@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimary">#3f51b5</color>
     <color name="colorPrimaryDark">#000000</color>
     <color name="colorAccent">#ff4081</color>
 
+    <color name="tabLyout">#d5d5d5</color>
+    <color name="statsBottom">#e9e9e9</color>
     <color name="habitDone">#1bb315</color>
 </resources>

@@ -48,18 +48,25 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+//TODO: CITAJ ISPOD
+/**
+ * 0) Sign up link ne radi
+ * 0.5) One funkcije onCreateView pokretat samo kad se radi home screen?
+ * 1) my profile progress bar prati onaj progress bar sa lvl-ima
+ * 2) debuggirat sve od dodavanja navika nadalje -> mozda cak sve prebacit ONLINE!!
+ * 3) dizajn hrpetine stvari
+ * 4) u stats da se vidi za svaku naviku pojedinačno i malo bolje opis grafa
+ * 5) achievements -> to bi trebalo bit dosta jednostavno a fora izgleda
+ * 6) smanjivat velicine slika da sve bude brze
+ */
+
 
 public class HomeScreen extends AppCompatActivity {
-
-    final private String TAG = "HOME SCREEN";
 
     private ViewPager viewPager;
     private FragmentCollectionAdapter adapter;
 
-    FirebaseStorage storage;
-    StorageReference storageReference;
-
-    //TODO: SVUGDJE JEDNOSTAVNO 'rounded bitmap drawable'
+    //TODO: MAKNUT SVE NEPOTREBNE TOASTO-ve
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -16,7 +16,7 @@
             android:innerRadius="33dp"
             android:useLevel="false">
 
-            <solid android:color="#FF001465" />
+            <solid android:color="#001465" />
         </shape>
     </item>
     <item>
