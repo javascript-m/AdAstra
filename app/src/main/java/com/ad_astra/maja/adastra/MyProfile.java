@@ -18,6 +18,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,13 +51,15 @@ public class MyProfile extends AppCompatActivity {
     private final String TAG = "MY PROFILE";
 
     ImageView profilePic;
-    TextView usnameTxt;
+    TextView usnameTxt, lvl, pDays, exp;
+    ProgressBar lvlBar;
     //TextView emailVer;
 
     Uri uriProfilePic;
     Uri downloadUrl;
     UploadTask uploadTask;
 
+    User user;
     String userID;
     FirebaseAuth mAuth;
     FirebaseStorage storage;
@@ -82,6 +85,10 @@ public class MyProfile extends AppCompatActivity {
 
         profilePic = (ImageView)findViewById(R.id.MP_profilePic);
         usnameTxt = (TextView)findViewById(R.id.MP_username);
+        lvl = (TextView) findViewById(R.id.MP_lvl);
+        pDays = (TextView) findViewById(R.id.MP_pDays);
+        exp = (TextView) findViewById(R.id.MP_exp);
+        lvlBar = (ProgressBar) findViewById(R.id.MP_lvlBar);
         //emailVer = (TextView)findViewById(R.id.MP_emailVerified);
 
         loadUserInformation();
@@ -203,17 +210,36 @@ public class MyProfile extends AppCompatActivity {
     }
 
     private void loadUserInformation() {
-        final FirebaseUser user = mAuth.getCurrentUser();
+        final FirebaseUser fbUser = mAuth.getCurrentUser();
 
-        if (user != null) {
-            if (user.getPhotoUrl() != null) {
-                homeScreen.urlImgToHolder(profilePic, user.getPhotoUrl().toString(), getResources());
+        if (fbUser != null) {
+            if (fbUser.getPhotoUrl() != null) {
+                homeScreen.urlImgToHolder(profilePic, fbUser.getPhotoUrl().toString(), getResources());
             }
 
-            if (user.getDisplayName() != null) {
-                usnameTxt.setText(user.getDisplayName());
+            if (fbUser.getDisplayName() != null) {
+                usnameTxt.setText(fbUser.getDisplayName());
             }
         }
+
+        db.collection("users").document(userID).get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            user = task.getResult().toObject(User.class);
+
+                            if (user != null) {
+                                String lvlText = "#" + Integer.toString(user.lvl);
+                                String expText = Integer.toString(user.exp) + "/" + Integer.toString(user.lvl * 50);
+                                lvl.setText(lvlText);
+                                exp.setText(expText);
+                                pDays.setText(Integer.toString(user.pDays));
+                                lvlBar.setProgress(user.exp * 100 / (user.lvl*50));
+                            }
+                        }
+                    }
+                });
     }
 
     @Override

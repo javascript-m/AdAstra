@@ -104,7 +104,7 @@ public class SignUp extends AppCompatActivity {
                                     if (user.getPhotoUrl() != null)
                                         photoUrl = user.getPhotoUrl().toString();
 
-                                    User dbUser = new User(0, 0, 0, user.getDisplayName(), photoUrl);
+                                    User dbUser = new User(1, 0, 0, user.getDisplayName(), photoUrl);
                                     db.collection("users").document(user.getUid()).set(dbUser);
                                     Intent intent = new Intent(SignUp.this, HomeScreen.class);
                                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); //In case user presses 'back'

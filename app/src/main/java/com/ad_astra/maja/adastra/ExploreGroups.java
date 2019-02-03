@@ -24,6 +24,8 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
+//TODO: include search option
+
 public class ExploreGroups extends AppCompatActivity {
 
     final private String TAG = "EXPLORE GROUPS";
@@ -32,7 +34,6 @@ public class ExploreGroups extends AppCompatActivity {
     String userID;
     FirebaseFirestore db;
 
-    TextView title;
     final List<String> myGroups = new ArrayList<>();
 
     @Override
@@ -43,8 +44,6 @@ public class ExploreGroups extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         userID = mAuth.getCurrentUser().getUid();
         db = FirebaseFirestore.getInstance();
-
-        title = (TextView) findViewById(R.id.EG_title);
 
         // Get groups user has already joined
         db.collection("users").document(userID).collection("my_groups").get()

@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -16,6 +17,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -34,6 +36,7 @@ public class GroupData extends AppCompatActivity {
     EditText write;
     ImageButton submit;
     String gID;
+    TextView title;
 
     FragmentManager fragmentManager;
     FragmentTransaction fragmentTransaction;
@@ -53,6 +56,7 @@ public class GroupData extends AppCompatActivity {
 
         write = (EditText) findViewById(R.id.GD_write);
         submit = (ImageButton) findViewById(R.id.GD_submit);
+        title = (TextView) findViewById(R.id.GD_groupTitle);
 
         mAuth = FirebaseAuth.getInstance();
         user = mAuth.getCurrentUser();
@@ -94,6 +98,19 @@ public class GroupData extends AppCompatActivity {
 
     private void loadOldPosts() {
         fragmentManager = getSupportFragmentManager();
+        //Load group name
+        db.collection("groups").document(gID).get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            String groupName = task.getResult().get("name").toString();
+                            if (groupName != null && !groupName.isEmpty())
+                                title.setText(groupName);
+                        }
+                    }
+                });
+
         db.collection("groups").document(gID).collection("posts").get()
             .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                 @Override

@@ -7,33 +7,50 @@
     android:background="@android:color/white"
     tools:context=".AddHabit">
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/AAH_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/purple_toolbar"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="?attr/actionBarTheme" >
+
+        <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ADD A HABIT"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        tools:layout_editor_absoluteX="16dp"
+        tools:layout_editor_absoluteY="19dp" />
+    </android.support.v7.widget.Toolbar>
+
     <ImageView
         android:id="@+id/AAH_img"
         android:layout_width="70dp"
         android:layout_height="70dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="28dp"
-        android:onClick="onClick"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
         android:background="@drawable/empty_habit_button"
+        android:onClick="onClick"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/AAH_toolbar" />
 
     <EditText
         android:id="@+id/AAH_name"
         android:layout_width="236dp"
         android:layout_height="46dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginLeft="12dp"
-        android:layout_marginRight="8dp"
         android:layout_marginStart="12dp"
-        android:layout_marginTop="52dp"
+        android:layout_marginTop="36dp"
         android:ems="10"
         android:hint="Habit name"
         android:inputType="textPersonName"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.095"
         app:layout_constraintStart_toEndOf="@+id/AAH_img"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/AAH_toolbar" />
 
     <Button
         android:id="@+id/AAH_submit"
@@ -43,8 +60,14 @@
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:background="@drawable/purple_toolbar"
         android:onClick="onClick"
+        android:paddingBottom="5dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingTop="5dp"
         android:text="Submit"
+        android:textColor="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -54,9 +77,8 @@
         android:id="@+id/AAH_goalTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="32dp"
         android:layout_marginStart="32dp"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="16dp"
         android:text="Goal (how many days a week)"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
@@ -67,11 +89,12 @@
         style="@style/Widget.AppCompat.SeekBar.Discrete"
         android:layout_width="279dp"
         android:layout_height="17dp"
-        android:layout_marginLeft="16dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="12dp"
         android:max="7"
         android:progress="3"
+        android:progressTint="@color/purple"
+        android:thumbTint="@color/purple"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/AAH_goalTitle" />
 

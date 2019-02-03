@@ -74,6 +74,7 @@
             android:layout_marginStart="24dp"
             android:layout_marginTop="20dp"
             android:progress="70"
+            android:progressTint="@android:color/white"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"

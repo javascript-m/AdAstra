@@ -310,7 +310,7 @@ public class HomeFragment extends Fragment {
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                         if (task.isSuccessful()) {
-                            user = task.getResult().toObject(User.class);
+                            user = Objects.requireNonNull(task.getResult()).toObject(User.class);
                             if (user != null) {
                                 lvl = "Lvl. #" + Integer.toString(user.lvl);
                                 exp = Integer.toString(user.exp) + "/" + Integer.toString(user.lvl * 50);

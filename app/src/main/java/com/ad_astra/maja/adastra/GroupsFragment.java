@@ -45,14 +45,10 @@ public class GroupsFragment extends Fragment {
     FirebaseFirestore db;
     FirebaseAuth mAuth;
     String userID;
-    User user;
     HomeScreen homeScreen;
 
     TextView title;
     Button addGroup;
-
-    ImageView profilePic;
-    TextView lvlTxt, expTxt;
 
     public GroupsFragment() {
         // Required empty public constructor
@@ -79,16 +75,11 @@ public class GroupsFragment extends Fragment {
 
         title = (TextView) groupsFragment.findViewById(R.id.GF_gTitle);
         addGroup = (Button) groupsFragment.findViewById(R.id.GF_addG);
-        profilePic = (ImageView) groupsFragment.findViewById(R.id.GF_profilePic);
-        lvlTxt = (TextView) groupsFragment.findViewById(R.id.GF_lvl);
-        expTxt = (TextView) groupsFragment.findViewById(R.id.GF_exp);
 
         mAuth = FirebaseAuth.getInstance();
         userID = mAuth.getCurrentUser().getUid();
         db = FirebaseFirestore.getInstance();
         homeScreen = new HomeScreen();
-
-        setRealtimeUpdates();
 
         db.collection("users").document(userID).collection("my_groups").get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -127,31 +118,5 @@ public class GroupsFragment extends Fragment {
 
         // Inflate the layout for this fragment
         return groupsFragment;
-    }
-
-    //Real-time updates listener (checks if database state has changed)
-    public void setRealtimeUpdates() {
-        final FirebaseUser fbUser = mAuth.getCurrentUser();
-        if (fbUser != null) {
-            if (fbUser.getPhotoUrl() != null)
-                homeScreen.urlImgToHolder(profilePic, fbUser.getPhotoUrl().toString(), getResources());
-        }
-
-        db.collection("users").document(userID)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            user = task.getResult().toObject(User.class);
-                            if (user != null) {
-                                String lvl = "Lvl. #" + Integer.toString(user.lvl);
-                                String exp = Integer.toString(user.exp) + "/" + Integer.toString(user.lvl * 50);
-                                lvlTxt.setText(lvl);
-                                expTxt.setText(exp);
-                            }
-                        }
-                    }
-                });
     }
 }
