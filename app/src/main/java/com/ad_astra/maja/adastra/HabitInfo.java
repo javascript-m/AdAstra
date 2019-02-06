@@ -24,7 +24,6 @@ public class HabitInfo {
     public int week = 0;
     public int done = 0;
     public long startDay;
-    public boolean skipped = false;
 
     public HabitInfo() {};
 

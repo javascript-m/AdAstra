@@ -6,9 +6,8 @@
     <item
         android:id="@+id/habitButtonDone"
         android:drawable="@drawable/state_habit_done" />
-    <item
-        android:id="@+id/habitButtonSkipped"
-        android:drawable="@drawable/state_habit_skipped" />
+
+
     <item>
         <shape
             android:shape="ring"

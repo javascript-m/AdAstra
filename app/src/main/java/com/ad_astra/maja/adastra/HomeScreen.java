@@ -27,6 +27,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -116,6 +117,43 @@ public class HomeScreen extends AppCompatActivity {
         return true;
     }
 
+    // https://android--examples.blogspot.com/2015/11/android-how-to-create-circular.html
+    private RoundedBitmapDrawable createRoundedBitmapDrawableWithBorder(Bitmap bitmap, Resources resources){
+        int bitmapWidth = bitmap.getWidth();
+        int bitmapHeight = bitmap.getHeight();
+        int borderWidthHalf = 1; // In pixels
+
+        // Calculate the bitmap radius
+        int bitmapRadius = Math.min(bitmapWidth,bitmapHeight)/2;
+        int bitmapSquareWidth = Math.min(bitmapWidth,bitmapHeight);
+        int newBitmapSquareWidth = bitmapSquareWidth+borderWidthHalf;
+
+        Bitmap roundedBitmap = Bitmap.createBitmap(newBitmapSquareWidth,newBitmapSquareWidth,Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(roundedBitmap);
+
+        // Draw a solid color to canvas
+        canvas.drawColor(Color.WHITE);
+
+        // Calculation to draw bitmap at the circular bitmap center position
+        int x = borderWidthHalf + bitmapSquareWidth - bitmapWidth;
+        int y = borderWidthHalf + bitmapSquareWidth - bitmapHeight;
+        canvas.drawBitmap(bitmap, x, y, null);
+
+        // Initializing a new Paint instance to draw circular border
+        Paint borderPaint = new Paint();
+        borderPaint.setStyle(Paint.Style.STROKE);
+        borderPaint.setStrokeWidth(borderWidthHalf*2);
+        borderPaint.setColor(Color.BLACK);
+
+        canvas.drawCircle(canvas.getWidth()/2, canvas.getWidth()/2, newBitmapSquareWidth/2 - 2, borderPaint);
+        RoundedBitmapDrawable roundedBitmapDrawable = RoundedBitmapDrawableFactory.create(resources, roundedBitmap);
+        roundedBitmapDrawable.setCornerRadius(bitmapRadius);
+        roundedBitmapDrawable.setAntiAlias(true);
+
+        // Return the RoundedBitmapDrawable
+        return roundedBitmapDrawable;
+    }
+
     public void urlImgToHolder(final View holder, String url, final Resources res) {
         FirebaseStorage storage = FirebaseStorage.getInstance();
         StorageReference storageReference = storage.getReferenceFromUrl(url);
@@ -126,7 +164,7 @@ public class HomeScreen extends AppCompatActivity {
                     @Override
                     public void onSuccess(byte[] bytes) {
                         Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                        RoundedBitmapDrawable icon = RoundedBitmapDrawableFactory.create(res, bmp);
+                        RoundedBitmapDrawable icon = createRoundedBitmapDrawableWithBorder(bmp, res);
                         icon.setCornerRadius(Math.max(bmp.getWidth(), bmp.getHeight()) / 2.0f);
                         holder.setBackground(icon);
                     }

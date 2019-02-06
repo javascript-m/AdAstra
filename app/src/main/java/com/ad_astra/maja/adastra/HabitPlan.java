@@ -10,4 +10,8 @@ public class HabitPlan {
             { 3, 4, 4, 5, 5, 6, 6, 6, 6, 6 },
             { 3, 4, 5, 6, 6, 7, 7, 7, 7, 7 }
     };
+
+    public static String[] week_days = new String[] {
+            "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"
+    };
 }
