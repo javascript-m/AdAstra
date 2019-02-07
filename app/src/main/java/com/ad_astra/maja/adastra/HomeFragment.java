@@ -374,6 +374,12 @@ public class HomeFragment extends Fragment {
             }
         }
 
+        // Event exp
+        Map <String, Object> setExp = new HashMap<>();
+        setExp.put("EXP", curDayDone * 20);
+        db.collection("users").document(userID).collection("events").document(Long.toString(dateInt))
+                .set(setExp, SetOptions.merge());
+
         // User progress values
         if (user.exp >= user.lvl * 50) {
             user.exp -= user.lvl * 50;

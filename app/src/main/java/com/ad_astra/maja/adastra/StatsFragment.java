@@ -4,18 +4,24 @@ package com.ad_astra.maja.adastra;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -24,8 +30,10 @@ import com.jjoe64.graphview.series.BarGraphSeries;
 import com.jjoe64.graphview.series.DataPoint;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -33,6 +41,8 @@ import java.util.Date;
 
 
 public class StatsFragment extends Fragment {
+
+    private final String TAG = "STATS FRAGMENT";
 
     GraphView graph;
 
@@ -57,24 +67,15 @@ public class StatsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View statsFragment = inflater.inflate(R.layout.fragment_stats, container, false);
 
-        addHabit = new AddHabit();
-
         mAuth = FirebaseAuth.getInstance();
         userID = mAuth.getCurrentUser().getUid();
         db = FirebaseFirestore.getInstance();
 
-        calendar = Calendar.getInstance();
-        eDay = calendar.getTime();
-        calendar.add(Calendar.DATE, -count);
-        bDay = calendar.getTime();
-        day = bDay;
-
-        endDay = (int) addHabit.getMidnight(0);
-        startDay = (int) addHabit.getMidnight(-count);
-
         graph = (GraphView) statsFragment.findViewById(R.id.SF_graph);
 
-        //TODO: ACTIVATE COE BELOW
+        chartOptions();
+
+        //TODO: ACTIVATE CODE BELOW
         /*
         //get the spinner from the xml.
         Spinner dropdown = statsFragment.findViewById(R.id.spinner1);
@@ -87,16 +88,34 @@ public class StatsFragment extends Fragment {
         dropdown.setAdapter(adapter);
         */
 
-        generateData();
         return statsFragment;
     }
 
-    private void drawChart() {
-        mSeries = new BarGraphSeries<>(values);
-        graph.addSeries(mSeries);
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            try {
+                generateData();
+            } catch (Exception e) {
+                Log.d(TAG, e.toString());
+            }
+        }
+        else {
+            return;
+        }
+    }
 
-        // styles and colors
-        mSeries.setColor(Color.parseColor("#001465"));
+    private void chartOptions() {
+        // Date 'n' time stuff
+        calendar = Calendar.getInstance();
+        eDay = calendar.getTime();
+        calendar.add(Calendar.DATE, -count);
+        bDay = calendar.getTime();
+        day = bDay;
+
+        endDay = (int) AddHabit.getMidnight(0);
+        startDay = (int) AddHabit.getMidnight(-count);
 
         // set manual x bounds to have nice steps
         graph.getViewport().setMinX(bDay.getTime());
@@ -114,18 +133,19 @@ public class StatsFragment extends Fragment {
         graph.getGridLabelRenderer().setHorizontalAxisTitle(xTitle);
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
+    private void drawChart() {
+        mSeries = new BarGraphSeries<>(values);
+        graph.addSeries(mSeries);
 
-    @Override
-    public void onPause() {
-        super.onPause();
+        // styles and colors
+        mSeries.setColor(Color.parseColor("#001465"));
     }
 
     //Get the data for specific habit
-    private void generateData() {
+    public void generateData() {
+        graph.removeAllSeries();
+        chartOptions();
+
         //Initialization
         for (int i=0; i<count; i++) {
             DataPoint v = new DataPoint(day, 0);
