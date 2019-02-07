@@ -59,6 +59,8 @@ public class HomeFragment extends Fragment {
 
     long dateInt;
     int curDayDone = 0;
+    int perfectDays[] = new int[] {0, 0, 0, 0, 0, 0, 0};
+    int curTabSelected = 6;
 
     // HabitInfo objects for ALL habits
     Map <String, Object> habit_list = new HashMap<>();
@@ -205,6 +207,7 @@ public class HomeFragment extends Fragment {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 dateInt = AddHabit.getMidnight(tab.getPosition() - 6);
+                curTabSelected = tab.getPosition();
 
                 Map <String, Object> setData = new HashMap<>();
                 setData.put("dateInt", dateInt);
@@ -346,7 +349,6 @@ public class HomeFragment extends Fragment {
                 curDayDone -= 1;
                 state = "false";
             }
-
             arrangeValues(v, (TextView) homeFragment.findViewWithTag(v.getTag()+"txt"), state);
 
             Map <Object, String> setData = new HashMap<>();
@@ -387,6 +389,14 @@ public class HomeFragment extends Fragment {
                 if (value < 15) value = 0;
                 progressBar.setProgress(value);
                 progressText.setText(value + "%");
+
+                if (curDayDone == user.habitList.size() && perfectDays[curTabSelected] == 0) {
+                    perfectDays[curTabSelected] = 1;
+                    user.pDays ++;
+                } else if (curDayDone != user.habitList.size() && perfectDays[curTabSelected] == 1) {
+                    perfectDays[curTabSelected] = 0;
+                    user.pDays --;
+                }
             }
         }
 
@@ -416,6 +426,7 @@ public class HomeFragment extends Fragment {
         Map <String, Object> setData = new HashMap<>();
         setData.put("lvl", user.lvl);
         setData.put("exp", user.exp);
+        setData.put("pDays", user.pDays);
         db.collection("users").document(userID).set(setData, SetOptions.merge());
 
         // state already familiar

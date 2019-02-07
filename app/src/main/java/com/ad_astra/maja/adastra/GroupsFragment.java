@@ -20,10 +20,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -88,6 +90,26 @@ public class GroupsFragment extends Fragment {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 String group_id = document.getId();
+
+                                db.collection("users").document(userID).collection("achievements").document("Cassiopeia").get()
+                                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                        if (task.isSuccessful()) {
+                                            try {
+                                                title.setText(task.getResult().getData().toString());
+                                            } catch (Exception e) {
+                                                // User haven't got the achievement yet
+                                                String ach[] = AchievementInfo.builtIn[1];
+                                                AchievementInfo achievement = new AchievementInfo(ach);
+                                                DocumentReference achRef = db.collection("users").document(userID).collection("achievements").document(ach[0]);
+                                                achRef.set(achievement);
+                                            }
+
+                                        }
+                                    }
+                                });
+
                                 try {
                                     db.collection("groups").document(group_id).get()
                                             .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {

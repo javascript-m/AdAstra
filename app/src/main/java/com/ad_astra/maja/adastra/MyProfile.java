@@ -242,9 +242,11 @@ public class MyProfile extends AppCompatActivity {
                             if (user != null) {
                                 String lvlText = "#" + Integer.toString(user.lvl);
                                 String expText = Integer.toString(user.exp) + "/" + Integer.toString(user.lvl * 50);
+                                String pDaysText = Integer.toString(user.pDays);
+
                                 lvl.setText(lvlText);
                                 exp.setText(expText);
-                                pDays.setText(Integer.toString(user.pDays));
+                                pDays.setText(pDaysText);
                                 lvlBar.setProgress(user.exp * 100 / (user.lvl*50));
                             }
                         }

@@ -9,4 +9,6 @@
 
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="GF_title">MY GROUPS</string>
+
+    <string name="delete_habit"><u>Delete habit.</u></string>
 </resources>

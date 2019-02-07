@@ -20,6 +20,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.Continuation;
@@ -94,6 +95,11 @@ public class AddHabit extends AppCompatActivity {
 
         // Get message if turned to Edit Habit Info mode
         activityMode = getIntent().getStringExtra(EXTRA_MESSAGE);
+
+        TextView dHabit = (TextView)findViewById(R.id.AAH_delete);
+        if (!activityMode.equals("add habit"))
+            dHabit.setVisibility(View.VISIBLE);
+
         setRealtimeUpdates();
     }
 
@@ -121,6 +127,9 @@ public class AddHabit extends AppCompatActivity {
                 break;
             case R.id.AAH_img:
                 chooseImage();
+                break;
+            case R.id.AAH_delete:
+                deleteHabit(activityMode);
                 break;
         }
     }
@@ -270,7 +279,6 @@ public class AddHabit extends AppCompatActivity {
         }
     }
 
-
     public LayerDrawable circleBtn(Drawable drawMe, boolean isText) {
         LayerDrawable layerList = (LayerDrawable) ResourcesCompat.getDrawable(getResources(), R.drawable.habit_btn, null);
         Objects.requireNonNull(layerList).mutate();
@@ -330,5 +338,14 @@ public class AddHabit extends AppCompatActivity {
             Log.d(TAG, e.toString());
         }
 
+    }
+
+    private void deleteHabit(String hName) {
+        db.collection("users").document(userID).collection("habits").document(hName).delete();
+
+        user.habitList.remove(hName);
+        db.collection("users").document(userID).set(user);
+
+        //TODO: Delete all events in the last week that contain habitName
     }
 }
