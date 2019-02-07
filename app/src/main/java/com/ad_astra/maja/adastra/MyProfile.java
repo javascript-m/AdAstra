@@ -1,5 +1,7 @@
 package com.ad_astra.maja.adastra;
 
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -36,6 +38,8 @@ import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -44,6 +48,7 @@ import com.google.firebase.storage.UploadTask;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class MyProfile extends AppCompatActivity {
 
@@ -66,6 +71,10 @@ public class MyProfile extends AppCompatActivity {
     StorageReference storageReference;
     FirebaseFirestore db;
     HomeScreen homeScreen;
+
+    //For achievements
+    FragmentManager fragmentManager;
+    FragmentTransaction fragmentTransaction;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +101,7 @@ public class MyProfile extends AppCompatActivity {
         //emailVer = (TextView)findViewById(R.id.MP_emailVerified);
 
         loadUserInformation();
+        loadAchievements();
     }
 
 
@@ -237,6 +247,35 @@ public class MyProfile extends AppCompatActivity {
                                 pDays.setText(Integer.toString(user.pDays));
                                 lvlBar.setProgress(user.exp * 100 / (user.lvl*50));
                             }
+                        }
+                    }
+                });
+    }
+
+    private void loadAchievements() {
+        fragmentManager = getSupportFragmentManager();
+
+        db.collection("users").document(userID).collection("achievements").get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
+                                fragmentTransaction = fragmentManager.beginTransaction();
+
+                                HashMap data = (HashMap) document.getData();
+
+                                String title = (String) data.get("title").toString();
+                                String desc = (String) data.get("description").toString();
+                                String imgUrl = (String) data.get("url").toString();
+
+                                //PostFragment is used to display Achievements (They have the same GUI)
+                                PostFragment achFragment = PostFragment.newInstance(title, desc, 0, false, imgUrl);
+                                fragmentTransaction.add(R.id.MP_holder, achFragment);
+                                fragmentTransaction.commit();
+                            }
+                        } else {
+                            Log.d(TAG, "Error getting documents: ", task.getException());
                         }
                     }
                 });

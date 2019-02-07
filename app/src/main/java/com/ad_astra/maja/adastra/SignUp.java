@@ -50,6 +50,10 @@ public class SignUp extends AppCompatActivity {
             case R.id.SU_submitBtn:
                 registerUser();
                 break;
+            case R.id.SU_LIbtn:
+                finish();
+                startActivity(new Intent(SignUp.this, MainActivity.class));
+                break;
         }
     }
 

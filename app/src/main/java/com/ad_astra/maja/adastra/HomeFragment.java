@@ -1,5 +1,7 @@
 package com.ad_astra.maja.adastra;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -16,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -24,10 +27,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -154,16 +159,19 @@ public class HomeFragment extends Fragment {
                                         habitInfo.startDay = dateInt;
                                         habitInfo.done = 0;
                                     }
-
-                                    if (habitInfo.week >= 10) {
-                                        // TODO: FINISHED 10 weeks, izbrisi i dodaj achievement
-                                    } else if (habitInfo.week < 0) {
-                                        habitInfo.week = 0;
-                                    }
-
-                                    db.collection("users").document(userID).collection("habits").document(habitInfo.name)
-                                            .set(habitInfo, SetOptions.merge());
                                 }
+
+                                if (habitInfo.week >= 10) {
+                                    // Habit completely finished, add an achievement
+                                    tenWeeksFinished(habitInfo.name, habitInfo.imgUriS);
+                                    return;
+                                } else if (habitInfo.week < 0) {
+                                    habitInfo.week = 0;
+                                }
+
+                                db.collection("users").document(userID).collection("habits").document(habitInfo.name)
+                                        .set(habitInfo, SetOptions.merge());
+
                                 habit_list.put(habitInfo.name, habitInfo);
                             }
                             if (user != null)
@@ -225,6 +233,14 @@ public class HomeFragment extends Fragment {
     private void createHomeScreen() {
         LinearLayout habitHolder = (LinearLayout) homeFragment.findViewById(R.id.HF_habitHolder);
         LinearLayout progressHolder = (LinearLayout) homeFragment.findViewById(R.id.HF_progressHolder);
+
+        // Initialize
+        for (int i=0; i<6; i++) {
+            habitHolder.getChildAt(2*i).setVisibility(View.GONE);
+            habitHolder.getChildAt(2*i + 1).setVisibility(View.GONE);
+            progressHolder.getChildAt(2*i).setVisibility(View.GONE);
+            progressHolder.getChildAt(2*i + 1).setVisibility(View.GONE);
+        }
 
         //Show buttons with upper text and add background images/text
         int hNum = 0;
@@ -473,4 +489,42 @@ public class HomeFragment extends Fragment {
         return 0;
     }
 
+    private void tenWeeksFinished(final String hName, String imgUrl) {
+        String desc = "You have successfully completed habit '" + hName.toUpperCase() + "'!\n";
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Congratulations!");
+        builder.setMessage(desc);
+
+        ImageView imageView = new ImageView(getContext());
+        imageView.setImageResource(R.drawable.state_habit_completed);
+        builder.setView(imageView);
+
+        //Generate achievement
+        DocumentReference achRef = db.collection("users").document(userID).collection("achievements").document();
+        AchievementInfo achievement = new AchievementInfo(achRef.getId(), "Completed: " + hName.toUpperCase(), desc, imgUrl);
+        achRef.set(achievement);
+
+        //Remove document from habit collection and user.habitList
+        habit_list.remove(hName);
+        db.collection("users").document(userID).collection("habits").document(hName).delete()
+        .addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful())
+                    createHomeScreen();
+            }
+        });
+
+        user.habitList.remove(hName);
+        db.collection("users").document(userID).set(user);
+
+        //Set close button
+        builder.setNegativeButton("Close", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        builder.show();
+    }
 }

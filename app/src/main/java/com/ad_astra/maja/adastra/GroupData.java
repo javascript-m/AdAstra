@@ -73,7 +73,7 @@ public class GroupData extends AppCompatActivity {
                     fragmentManager = getSupportFragmentManager();
                     fragmentTransaction = fragmentManager.beginTransaction();
 
-                    PostFragment postFragment = PostFragment.newInstance(userID, text, 0);
+                    PostFragment postFragment = PostFragment.newInstance(userID, text, 0, true, "");
 
                     fragmentTransaction.add(R.id.GD_holder, postFragment);
                     fragmentTransaction.commit();
@@ -125,7 +125,7 @@ public class GroupData extends AppCompatActivity {
                             String content = (String) data.get("text").toString();
                             int votes = (int) Integer.parseInt(data.get("votes").toString());
 
-                            PostFragment postFragment = PostFragment.newInstance(usID, content, votes);
+                            PostFragment postFragment = PostFragment.newInstance(usID, content, votes, true, "");
                             fragmentTransaction.add(R.id.GD_holder, postFragment);
                             fragmentTransaction.commit();
                         }

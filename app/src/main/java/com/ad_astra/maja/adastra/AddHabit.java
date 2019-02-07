@@ -94,7 +94,6 @@ public class AddHabit extends AppCompatActivity {
 
         // Get message if turned to Edit Habit Info mode
         activityMode = getIntent().getStringExtra(EXTRA_MESSAGE);
-        Toast.makeText(context, activityMode, Toast.LENGTH_SHORT).show();
         setRealtimeUpdates();
     }
 
@@ -255,7 +254,7 @@ public class AddHabit extends AppCompatActivity {
                     .addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show();
+                            Log.d(TAG, e.toString());
                         }
                     });
             user.habitList.add(name);
@@ -263,11 +262,11 @@ public class AddHabit extends AppCompatActivity {
                     .addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show();
+                            Log.d(TAG, e.toString());
                         }
                     });
         } catch (Exception e) {
-            Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show();
+            Log.d(TAG, e.toString());
         }
     }
 
