@@ -20,6 +20,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.SeekBar;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -93,6 +94,7 @@ public class AddHabit extends AppCompatActivity {
 
         // Get message if turned to Edit Habit Info mode
         activityMode = getIntent().getStringExtra(EXTRA_MESSAGE);
+        Toast.makeText(context, activityMode, Toast.LENGTH_SHORT).show();
         setRealtimeUpdates();
     }
 
@@ -107,12 +109,16 @@ public class AddHabit extends AppCompatActivity {
                 if (validateInputs()) {
                     if (activityMode.equals("add habit")) {
                         submitAddChanges();
+                        finish();
+                        startActivity(new Intent(AddHabit.this, HomeScreen.class));
                     } else {
                         submitEditChanges();
+                        finish();
+                        startActivity(new Intent(AddHabit.this, HomeScreen.class));
                     }
+                } else {
+                    return;
                 }
-                finish();
-                startActivity(new Intent(AddHabit.this, HomeScreen.class));
                 break;
             case R.id.AAH_img:
                 chooseImage();
@@ -236,11 +242,33 @@ public class AddHabit extends AppCompatActivity {
 
     //Create habitInfo file and add habit name to userInfo file
     private void submitAddChanges() {
-        final HabitInfo habitInfo = new HabitInfo(context, name, desc, goal, trigger, replacement, getMidnight(0), uriDownload.toString());
-        db.collection("users").document(userID).collection("habits").document(name).set(habitInfo);
+        try {
+            String downloadUrl = "";
+            try {
+                downloadUrl = uriDownload.toString();
+            } catch (Exception e) {
+                Log.d(TAG, "No image");
+            }
 
-        user.habitList.add(name);
-        db.collection("users").document(userID).set(user);
+            final HabitInfo habitInfo = new HabitInfo(context, name, desc, goal, trigger, replacement, getMidnight(0), downloadUrl);
+            db.collection("users").document(userID).collection("habits").document(name).set(habitInfo)
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+            user.habitList.add(name);
+            db.collection("users").document(userID).set(user)
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        } catch (Exception e) {
+            Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show();
+        }
     }
 
 

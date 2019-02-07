@@ -1,26 +1,18 @@
 package com.ad_astra.maja.adastra;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
-import android.media.Image;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.TabItem;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
-import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -28,52 +20,40 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
-import org.w3c.dom.Text;
-
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 import static android.provider.AlarmClock.EXTRA_MESSAGE;
 
-//TODO: Poboljšat praćenje datuma / dana u tjednu
 
 public class HomeFragment extends Fragment {
 
     private final String TAG = "HOME FRAGMENT";
 
     View homeFragment;
+
     long dateInt;
+    int curDayDone = 0;
 
     // HabitInfo objects for ALL habits
     Map <String, Object> habit_list = new HashMap<>();
@@ -85,8 +65,6 @@ public class HomeFragment extends Fragment {
     FirebaseFirestore db;
     FirebaseStorage storage;
 
-    TextView test;
-
     public HomeFragment() {
         // Required empty public constructor
     }
@@ -95,8 +73,6 @@ public class HomeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         homeFragment = inflater.inflate(R.layout.fragment_home, container, false);
-
-        test = homeFragment.findViewById(R.id.HF_todoTitle);
 
         //Initialize to today
         dateInt = AddHabit.getMidnight(0);
@@ -108,7 +84,27 @@ public class HomeFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
 
+        ImageView profilePic = homeFragment.findViewById(R.id.HF_profilePic);
+        HomeScreen homeScreen = new HomeScreen();
+        homeScreen.urlImgToHolder(profilePic, fbUser.getPhotoUrl().toString(), getResources());
+
         initializeFragment();
+
+        Button addHabitBtn = homeFragment.findViewById(R.id.HF_add);
+        addHabitBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (user.habitList.size() >= 6) {
+                    Toast.makeText(getContext(), "Maximum number of habits reached", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                Intent intent = new Intent(getContext(), AddHabit.class);
+                String message = "add habit";
+                intent.putExtra(EXTRA_MESSAGE, message);
+                startActivity(intent);
+            }
+        });
 
         // Inflate the layout for this fragment
         return homeFragment;
@@ -143,7 +139,7 @@ public class HomeFragment extends Fragment {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 HabitInfo habitInfo = document.toObject(HabitInfo.class);
 
-                                //TODO: TESTIRAJ OVAJ DIO
+                                //TODO: TESTIRAJ OVAJ DIO am dap
                                 // Check and update current habit state
                                 long weekTime = 604800; // 7 * 24 * 60 * 60
 
@@ -196,9 +192,6 @@ public class HomeFragment extends Fragment {
             managerPos--;
         }
 
-        //Select the last one (today)
-        dayManager.getTabAt(6).select();
-
         //Make screen update when tab is selected
         dayManager.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -224,6 +217,9 @@ public class HomeFragment extends Fragment {
             @Override
             public void onTabReselected(TabLayout.Tab tab) {}
         });
+
+        //Select the last one (today)
+        dayManager.getTabAt(6).select();
     }
 
     private void createHomeScreen() {
@@ -237,9 +233,13 @@ public class HomeFragment extends Fragment {
             final ImageButton btnView = (ImageButton) habitHolder.getChildAt(2*hNum);
             btnView.setVisibility(View.VISIBLE);
             btnView.setTag(hName);
-            final View txtView = progressHolder.getChildAt(2*hNum);
+
+            final TextView txtView = (TextView) progressHolder.getChildAt(2*hNum);
             txtView.setVisibility(View.VISIBLE);
             txtView.setTag(hName + "txt");
+
+            habitHolder.getChildAt(2*hNum+1).setVisibility(View.VISIBLE);
+            progressHolder.getChildAt(2*hNum+1).setVisibility(View.VISIBLE);
 
             HabitInfo habitInfo = (HabitInfo) habit_list.getOrDefault(hName, null);
 
@@ -255,7 +255,7 @@ public class HomeFragment extends Fragment {
                         try {
                             LayerDrawable layerList = circleBtn(habitIcon, false);
                             btnView.setBackground(layerList);
-                            arrangeBtnStyle(btnView, "notDefined");
+                            arrangeValues(btnView, txtView, "notDefined");
                         } catch (Exception e) {
                             Log.d(TAG, "Habit icon display failed.");
                         }
@@ -266,20 +266,23 @@ public class HomeFragment extends Fragment {
                 textDrawable.addCustomStyle(hName);
                 LayerDrawable layerList = circleBtn(textDrawable, true);
                 btnView.setBackground(layerList);
+                arrangeValues(btnView, txtView, "notDefined");
             }
 
             // Tick and edit info options
             btnView.setOnClickListener(habitClick);
-            //btnView.setOnLongClickListener(habitLongClick);
+            btnView.setOnLongClickListener(habitLongClick);
             hNum++;
         }
 
-        // All habit views are created
-        if (hNum >= user.habitList.size())
-            createDayChooser();
+        createDayChooser();
     }
 
     private void updateHomeScreen() {
+
+        //How many tasks are done today
+        curDayDone = 0;
+
         db.collection("users").document(userID).collection("events").document(Long.toString(dateInt)).get()
                 .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
@@ -291,10 +294,12 @@ public class HomeFragment extends Fragment {
                                 for (String hName : user.habitList) {
                                     String state = data.getOrDefault(hName, "false").toString();
 
+                                    if (state.equals("true")) curDayDone++;
+
                                     try {
-                                        arrangeBtnStyle(homeFragment.findViewWithTag(hName), state);
+                                        arrangeValues(homeFragment.findViewWithTag(hName), (TextView) homeFragment.findViewWithTag(hName+"txt"), state);
                                     } catch (Exception e) {
-                                        test.setText("S"+e.toString());
+                                        Log.d(TAG, e.toString());
                                     }
                                 }
                             }
@@ -306,37 +311,105 @@ public class HomeFragment extends Fragment {
     private View.OnClickListener habitClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            HabitInfo habitInfo = (HabitInfo) habit_list.get(v.getTag().toString());
+
             LayerDrawable layerList = (LayerDrawable) v.getBackground();
             int alpha = layerList.findDrawableByLayerId(R.id.habitButtonDone).getAlpha();
 
             String state;
 
-            if (alpha == 0) state = "true";
-            else state = "false";
-            arrangeBtnStyle(v, state);
+            if (alpha == 0) {
+                state = "true";
+                user.exp += 20;
+                habitInfo.done += 1;
+                curDayDone += 1;
+            }
+            else {
+                user.exp -= 20;
+                habitInfo.done -= 1;
+                curDayDone -= 1;
+                state = "false";
+            }
+
+            arrangeValues(v, (TextView) homeFragment.findViewWithTag(v.getTag()+"txt"), state);
 
             Map <Object, String> setData = new HashMap<>();
             setData.put(v.getTag().toString(), state);
-
             db.collection("users").document(userID).collection("events").document(Long.toString(dateInt))
                     .set(setData, SetOptions.merge());
+
+            db.collection("users").document(userID).collection("habits").document(v.getTag().toString())
+                    .set(habitInfo, SetOptions.merge());
         }
     };
 
-    public void arrangeBtnStyle(final View v, String state) {
+    private View.OnLongClickListener habitLongClick = new View.OnLongClickListener() {
+        @Override
+        public boolean onLongClick(View v) {
+            Intent intent = new Intent(getContext(), AddHabit.class);
+            String message = v.getTag().toString();
+            intent.putExtra(EXTRA_MESSAGE, message);
+            startActivity(intent);
+            return false;
+        }
+    };
+
+    //Updates button style, upper text value and circular progress bar
+    public void arrangeValues(final View btn, TextView txt, String state) {
+        HabitInfo  habitInfo = (HabitInfo) habit_list.getOrDefault(btn.getTag().toString(), null);
+        if (habitInfo != null) {
+            //Add upper text
+            String upperText = Integer.toString(habitInfo.done) + "/" + Integer.toString(HabitPlan.plan[habitInfo.goal-1][habitInfo.week]);
+            txt.setText(upperText);
+
+            //Update progress bar
+            ProgressBar progressBar = (ProgressBar) homeFragment.findViewById(R.id.HF_circBar);
+            TextView progressText = (TextView) homeFragment.findViewById(R.id.HF_progressTxt);
+            if (user.habitList.size() != 0) {
+                int value = curDayDone*100 / user.habitList.size();
+                if (value > 90) value = 100;
+                if (value < 15) value = 0;
+                progressBar.setProgress(value);
+                progressText.setText(value + "%");
+            }
+        }
+
+        // User progress values
+        if (user.exp >= user.lvl * 50) {
+            user.exp -= user.lvl * 50;
+            user.lvl++;
+        }
+        else if (user.exp < 0) {
+            user.lvl--;
+            user.exp = user.lvl * 50 + user.exp;
+        }
+        String lvl = "Lvl. #" + Integer.toString(user.lvl);
+        String exp = Integer.toString(user.exp) + "/" + Integer.toString(user.lvl * 50);
+
+        TextView lvlTxt = (TextView) homeFragment.findViewById(R.id.HF_lvl);
+        TextView expTxt = (TextView) homeFragment.findViewById(R.id.HF_exp);
+        lvlTxt.setText(lvl);
+        expTxt.setText(exp);
+
+        Map <String, Object> setData = new HashMap<>();
+        setData.put("lvl", user.lvl);
+        setData.put("exp", user.exp);
+        db.collection("users").document(userID).set(setData, SetOptions.merge());
+
+        // state already familiar
         if (!state.equals("notDefined")) {
-            LayerDrawable layerList = (LayerDrawable) v.getBackground();
+            LayerDrawable layerList = (LayerDrawable) btn.getBackground();
             if (state.equals("true")) {
                 layerList.findDrawableByLayerId(R.id.habitButtonDone).setAlpha(255);
             } else {
                 layerList.findDrawableByLayerId(R.id.habitButtonDone).setAlpha(0);
             }
             layerList.invalidateSelf();
-            v.setBackground(layerList);
+            btn.setBackground(layerList);
             return;
         }
 
-        final String hName = v.getTag().toString();
+        final String hName = btn.getTag().toString();
         db.collection("users").document(userID).collection("events").document(Long.toString(dateInt)).get()
                 .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
@@ -344,20 +417,20 @@ public class HomeFragment extends Fragment {
                         if (task.isSuccessful()) {
                             LayerDrawable layerList;
                             try {
-                                layerList = (LayerDrawable) v.getBackground();
+                                layerList = (LayerDrawable) btn.getBackground();
                             } catch (Exception e) {
                                 layerList = (LayerDrawable) getResources().getDrawable(R.drawable.habit_btn, null);
                             }
 
-                            String state = task.getResult().get(hName).toString();
+                            String state = task.getResult().getString(hName);
 
-                            if (state.equals("true")) {
+                            if (state != null && state.equals("true")) {
                                 layerList.findDrawableByLayerId(R.id.habitButtonDone).setAlpha(255);
                             } else {
                                 layerList.findDrawableByLayerId(R.id.habitButtonDone).setAlpha(0);
                             }
                             layerList.invalidateSelf();
-                            v.setBackground(layerList);
+                            btn.setBackground(layerList);
                         }
                     }
                 });
