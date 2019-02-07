@@ -112,7 +112,7 @@ public class PostFragment extends Fragment {
                 textDrawable.addCustomStyle(hName);
                 LayerDrawable layerList = circleBtn(textDrawable, true);
 
-                //TODO: Make a border
+                //TODO: Add border to drawable
                 img.setBackground(layerList);
             }
 

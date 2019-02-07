@@ -49,21 +49,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-//TODO: CITAJ ISPOD
-/**
- * 0) Sign up link ne radi
- * 4) u stats da se vidi za svaku naviku pojedinačno i malo bolje opis grafa
- * 5) achievements -> to bi trebalo bit dosta jednostavno a fora izgleda
- * 6) smanjivat velicine slika da sve bude brze
- */
+//TODO: Reduce image sizes
+//TODO: Remove all unnecessary Toasts
 
 
 public class HomeScreen extends AppCompatActivity {
 
     private ViewPager viewPager;
     private FragmentCollectionAdapter adapter;
-
-    //TODO: MAKNUT SVE NEPOTREBNE TOASTO-ve
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -14,4 +14,8 @@ public class HabitPlan {
     public static String[] week_days = new String[] {
             "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"
     };
+
+    public static String[] full_week_days = new String[] {
+            "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+    };
 }

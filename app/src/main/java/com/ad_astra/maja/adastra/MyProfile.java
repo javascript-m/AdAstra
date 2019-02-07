@@ -211,7 +211,7 @@ public class MyProfile extends AppCompatActivity {
                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
-                            // TODO: Stavit progress bar da korisnici pricekaju upload slike (inace rijesit probleme sa učivatavnjem)
+                            // TODO: Add loading bar (disable button while loading)
                             homeScreen.urlImgToHolder(profilePic, downloadUrl.toString(), getResources());
                             Toast.makeText(MyProfile.this, "USPJEH", Toast.LENGTH_SHORT).show();
                         }

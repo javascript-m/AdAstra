@@ -146,7 +146,7 @@ public class HomeFragment extends Fragment {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 HabitInfo habitInfo = document.toObject(HabitInfo.class);
 
-                                //TODO: TESTIRAJ OVAJ DIO am dap
+                                //TODO: More testing on this
                                 // Check and update current habit state
                                 long weekTime = 604800; // 7 * 24 * 60 * 60
 
@@ -480,7 +480,7 @@ public class HomeFragment extends Fragment {
         return layerList;
     }
 
-    private int getCurrentDay(int day) {
+    public int getCurrentDay(int day) {
         switch (day) {
             case Calendar.MONDAY:
                 return 0;
