@@ -213,7 +213,6 @@ public class MyProfile extends AppCompatActivity {
                         public void onComplete(@NonNull Task<Void> task) {
                             // TODO: Add loading bar (disable button while loading)
                             homeScreen.urlImgToHolder(profilePic, downloadUrl.toString(), getResources());
-                            Toast.makeText(MyProfile.this, "USPJEH", Toast.LENGTH_SHORT).show();
                         }
                     });
         }

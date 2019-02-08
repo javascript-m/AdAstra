@@ -20,6 +20,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 /***
@@ -104,9 +105,7 @@ public class SignUp extends AppCompatActivity {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 if (task.isSuccessful()) {
-                                    String photoUrl = ""; //Url na custom sliku
-                                    if (user.getPhotoUrl() != null)
-                                        photoUrl = user.getPhotoUrl().toString();
+                                    String photoUrl = ""; //Url na custom slik
 
                                     User dbUser = new User(1, 0, 0, user.getDisplayName(), photoUrl);
                                     db.collection("users").document(user.getUid()).set(dbUser);
@@ -125,7 +124,7 @@ public class SignUp extends AppCompatActivity {
                     if (task.getException() instanceof FirebaseAuthUserCollisionException) {
                         Toast.makeText(SignUp.this, "You are alreaddy registered", Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(SignUp.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(SignUp.this, task.getException().toString(), Toast.LENGTH_SHORT).show();
                     }
                 }
             }

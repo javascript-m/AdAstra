@@ -7,7 +7,7 @@
     android:layout_height="wrap_content"
     tools:context=".GroupButton">
 
-    <ImageView
+    <ImageButton
         android:id="@+id/FGB_img"
         android:layout_width="60dp"
         android:layout_height="60dp"

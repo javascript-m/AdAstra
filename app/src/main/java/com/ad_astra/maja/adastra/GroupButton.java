@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,7 +45,7 @@ public class GroupButton extends Fragment {
 
     private TextView nameText;
     private TextView adminText;
-    private ImageView img;
+    private ImageButton img;
     private Button joinBtn;
     private ConstraintLayout body;
 
@@ -86,7 +87,7 @@ public class GroupButton extends Fragment {
 
         nameText = (TextView) view.findViewById(R.id.FGB_title);
         adminText = (TextView) view.findViewById(R.id.FGB_desc);
-        img = (ImageView) view.findViewById(R.id.FGB_img);
+        img = (ImageButton) view.findViewById(R.id.FGB_img);
         joinBtn = (Button) view.findViewById(R.id.FGB_join);
         body = (ConstraintLayout) view.findViewById(R.id.FGB_layout);
 

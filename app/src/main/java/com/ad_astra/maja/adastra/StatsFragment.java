@@ -4,7 +4,6 @@ package com.ad_astra.maja.adastra;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,20 +13,15 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.firestore.SetOptions;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.BarGraphSeries;
 import com.jjoe64.graphview.series.DataPoint;
@@ -40,11 +34,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-/**
- * A simple {@link Fragment} subclass.
- */
-
 
 public class StatsFragment extends Fragment {
 
@@ -109,20 +98,19 @@ public class StatsFragment extends Fragment {
 
     private void bottomData() {
         Spinner chooser = statsFragment.findViewById(R.id.SF_choose);
-        TextView test = statsFragment.findViewById(R.id.SF_title);
 
         final List<String> list = new ArrayList<String>();
         for (Map.Entry<String, Object> habit : habit_list.entrySet()) {
-            list.add(habit.getKey());
+            list.add(habit.getKey().toUpperCase());
         }
-        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(Objects.requireNonNull(getContext()), android.R.layout.simple_spinner_item, list);
+        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(Objects.requireNonNull(getContext()), R.layout.spinner_item, list);
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         chooser.setAdapter(dataAdapter);
 
         chooser.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                String hName = list.get(position);
+                String hName = list.get(position).toLowerCase();
 
                 try {
                     HabitInfo habitInfo = (HabitInfo) habit_list.get(hName);

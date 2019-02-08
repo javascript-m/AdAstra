@@ -93,7 +93,9 @@ public class HomeFragment extends Fragment {
 
         ImageView profilePic = homeFragment.findViewById(R.id.HF_profilePic);
         HomeScreen homeScreen = new HomeScreen();
-        homeScreen.urlImgToHolder(profilePic, fbUser.getPhotoUrl().toString(), getResources());
+
+        if (fbUser.getPhotoUrl()!= null)
+            homeScreen.urlImgToHolder(profilePic, fbUser.getPhotoUrl().toString(), getResources());
 
         initializeFragment();
 
@@ -501,7 +503,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void tenWeeksFinished(final String hName, String imgUrl) {
-        String desc = "You have successfully completed habit '" + hName.toUpperCase() + "'!\n";
+        String desc = "Completed habit " + hName.toUpperCase() + "'!\n";
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Congratulations!");
         builder.setMessage(desc);
@@ -512,7 +514,7 @@ public class HomeFragment extends Fragment {
 
         //Generate achievement
         DocumentReference achRef = db.collection("users").document(userID).collection("achievements").document();
-        AchievementInfo achievement = new AchievementInfo(achRef.getId(), "Completed: " + hName.toUpperCase(), desc, imgUrl);
+        AchievementInfo achievement = new AchievementInfo(achRef.getId(), "Habit completed!", desc, imgUrl);
         achRef.set(achievement);
 
         //Remove document from habit collection and user.habitList
